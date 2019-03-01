@@ -42,21 +42,21 @@ ALIGNMENT_BATCH_SIZE=2000
 BWA_ARGUMENTS='-t 4'
 
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
-  com.google.allenday.nanostream.NanostreamApp \
-  --runner=$RUNNER \
-  --region=$ALIGNER_REGION \
-  --project=$PROJECT \
-  --streaming=true \
-  --processingMode=$PROCESSING_MODE \
-  --inputDataSubscription=$UPLOAD_SUBSCRIPTION \
-  --alignmentWindow=$ALIGNMENT_WINDOW \
-  --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
-  --servicesUrl=$SERVICES_HOST \
-  --bwaEndpoint=$BWA_ENDPOINT \
-  --bwaDatabase=$BWA_DATABASE \
-  --kAlignEndpoint=$KALIGN_ENDPOINT \
-  --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
-  --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
-  --resistanceGenesList=$RESISTANCE_GENES_LIST \
-  --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE `# (Optional)`\
-  --bwaArguments=$BWA_ARGUMENTS `# (Optional)`
+ com.google.allenday.nanostream.NanostreamApp \
+ --runner=$RUNNER \
+ --region=$ALIGNER_REGION \
+ --project=$PROJECT \
+ --streaming=true \
+ --processingMode=$PROCESSING_MODE \
+ --inputDataSubscription=$UPLOAD_SUBSCRIPTION \
+ --alignmentWindow=$ALIGNMENT_WINDOW \
+ --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
+ --servicesUrl=$SERVICES_HOST \
+ --bwaEndpoint=$BWA_ENDPOINT \
+ --bwaDatabase=$BWA_DATABASE \
+ --kAlignEndpoint=$KALIGN_ENDPOINT \
+ --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
+ --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
+ --resistanceGenesList=$RESISTANCE_GENES_LIST \
+ --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE \
+ --bwaArguments=$BWA_ARGUMENTS
