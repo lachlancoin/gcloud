@@ -16,3 +16,9 @@ gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 
 #gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_BUCKET
 
+##CHECK notification
+#gsutil notification list gs://nano-stream1
+
+##DELETE NOTIFICATION
+#gsutil notification delete <notification name>
+#copy <notification name> from notification list command, looks something like "projects/_/buckets/nano-stream1/notificationConfigs/9"
