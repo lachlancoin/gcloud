@@ -17,6 +17,6 @@ export BWA_FILES='gs://nano-stream1/Databases/CombinedDatabases/*'
 # this line set it value to the active project ID
 export REQUESTER_PROJECT=$(gcloud config get-value project)
 
-source provision.sh
+source provision_internal.sh
 
 [[ $1 = '-c' ]] && cleanup || setup
