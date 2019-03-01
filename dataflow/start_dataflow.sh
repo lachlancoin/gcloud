@@ -41,7 +41,8 @@ ALIGNMENT_BATCH_SIZE=2000
 # Arguments that will be passed to BWA aligner (worker nodes machine_type). Default value - "-t 4". Can try "-t 8".
 BWA_ARGUMENTS='-t 4'
 
-java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
+java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar
+#/home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
   com.google.allenday.nanostream.NanostreamApp \
   --runner=$RUNNER \
   --region=$ALIGNER_REGION \
