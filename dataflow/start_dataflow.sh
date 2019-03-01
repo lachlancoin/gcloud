@@ -31,12 +31,20 @@ KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
 # Collections name prefix of the Firestore database that will be used for writing results
 FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
-# (OPTIONAL) Firestore database document name that will be used for writing statistic results. You can specify it otherwise it will be generated automatically
+
+## OPTIONAL ARGUMENTS
+
+# Firestore database document name that will be used for writing statistic results. You can specify it otherwise it will be generated automatically
 FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
+# Max size of batch that will be generated before alignment. Default value - 2000
+ALIGNMENT_BATCH_SIZE=2000
+# Arguments that will be passed to BWA aligner (worker nodes machine_type). Default value - "-t 4". Can try "-t 8".
+BWA_ARGUMENTS='-t 4'
 
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
   com.google.allenday.nanostream.NanostreamApp \
   --runner=$RUNNER \
+  --region=$ALIGNER_REGION \
   --project=$PROJECT \
   --streaming=true \
   --processingMode=$PROCESSING_MODE \
@@ -45,13 +53,13 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/Na
   --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
   --servicesUrl=$SERVICES_HOST \
   --bwaEndpoint=$BWA_ENDPOINT \
-  --bwaDatabase=$BWA_DATABASE \ 
+  --bwaDatabase=$BWA_DATABASE \
   --kAlignEndpoint=$KALIGN_ENDPOINT \
   --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
   --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
   --resistanceGenesList=$RESISTANCE_GENES_LIST \
   --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE `# (Optional)`\
-  --bwaArguments=$BWA_ARGUMENTS `# (Optional)`
+  --bwaArguments=$BWA_ARGUMENTS `# (Optional)
 
 
 #java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
