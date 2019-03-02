@@ -33,6 +33,8 @@ BWA_DATABASE=genomeDB.fasta  #DB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
+RESISTANCE_GENES_LIST=gs://$PROJECT/Databases/resFinder/geneList
+
 # Collections name prefix of the Firestore database that will be used for writing results
 FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
 
