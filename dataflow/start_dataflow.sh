@@ -72,9 +72,10 @@ echo "java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDat
  --outputFirestoreCollectionNamePrefix=${FIRESTORE_COLLECTION_NAME_PREFIX} \
  --outputFirestoreStatisticDocumentName=${FIRESTORE_STATISTIC_DOCUMENT_NAME} \
  --resistanceGenesList=${RESISTANCE_GENES_LIST} \
- --alignmentBatchSize=${ALIGNMENT_BATCH_SIZE} \
- --bwaArguments=${BWA_ARGUMENTS}
+ --alignmentBatchSize=${ALIGNMENT_BATCH_SIZE} 
 "
+#\
+# --bwaArguments=${BWA_ARGUMENTS}"
 
 java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
  com.google.allenday.nanostream.NanostreamApp \
@@ -93,5 +94,6 @@ java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowM
  --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
  --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
  --resistanceGenesList=$RESISTANCE_GENES_LIST \
- --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE \
- --bwaArguments=$BWA_ARGUMENTS
+ --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE 
+#\
+# --bwaArguments=$BWA_ARGUMENTS
