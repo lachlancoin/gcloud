@@ -5,16 +5,16 @@ PROJECT=$(gcloud config get-value project)
 UPLOAD_EVENTS=UPLOAD_EVENTS
 UPLOAD_BUCKET=Uploads
 notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT)
-
-if [ ! $notif ] ; then
- echo "WARNING: no notifications are set for file uploads";
- exit 1;
-fi
+echo "notifications:  "$notif
+#if [ ! $notif ] ; then
+# echo "WARNING: no notifications are set for file uploads";
+# exit 1;
+#fi
 
 #CHECKING INPUT PARAMETERS
 dir=$1  #TARGET DIRECTORY
 sleepbase=$2  #HOW LONG TO SLEEP
-if [ ! $sleep ] || [ ! $dir ] ; then 
+if [ ! $sleepbase ] || [ ! $dir ] ; then 
 	echo "usage:  rt-sync.sh  path_to_fastq dir"
 	exit 1;	
 fi
@@ -39,12 +39,13 @@ diff=0
 run=0  #starts as zero
 while [ "$diff"  -le "$timeout"  ];
 do
+  sleep=$sleepbase
   if [ "$run" -eq "0" ]; then 
 	  a=$(ls $dir | grep fast[aq] | xargs -I {}  stat --printf='%Y\t%n\n' $dir/{}  | sort -k 1,1g  | wc -l )
 	   if [ "$a" -ge "2"  ]; then 
 		echo "found  files "
 		run=1
-		sleep=0
+		sleep=5
 	   fi
   else
     sleep=$sleepbase
