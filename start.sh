@@ -58,7 +58,7 @@ cd ../..  #back to top level
 
 ##PROVISION aligner cluster
 cd ./gcloud/aligner
-./provision_species_bwa.sh
+source ./provision_species_bwa.sh
 cd ../../
 
 SLEEP=60
@@ -74,8 +74,8 @@ source ./gcloud/dataflow/start_dataflow.sh
 echo "Should be good to go (modulo any errors from previous steps).  You can now us gsutil cp or gustil rsync to copy files to gs://${PROJECT}/Uploads directory";
 echo "once finished make sure you shutdown aligner cluster with "
 
-
-
+echo "./provision_species_bwa.sh -c "
+## 
 
 
 
