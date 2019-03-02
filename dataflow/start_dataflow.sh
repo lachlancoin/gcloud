@@ -17,6 +17,7 @@ STATS_UPDATE_FREQUENCY=30
 
 if [ ! $ALIGNER_REGION ]; then
 	echo "please define global parameter ALIGNER_REGION using e.g. export ALIGNER_REGION=\"asia-northeast1\""
+	exit 1;
 fi
 
 # IP address of the aligner cluster created by running aligner/provision_species.sh
@@ -77,6 +78,8 @@ echo "java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDat
 #\
 # --bwaArguments=${BWA_ARGUMENTS}"
 
+
+
 java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
  com.google.allenday.nanostream.NanostreamApp \
  --runner=$RUNNER \
@@ -97,3 +100,10 @@ java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowM
  --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE 
 #\
 # --bwaArguments=$BWA_ARGUMENTS
+
+#FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
+#FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
+
+url="https://nano-stream1.appspot.com/?c=${FIRESTORE_COLLECTION_NAME_PREFIX}_species_sequences_statistic&d=${FIRESTORE_STATISTIC_DOCUMENT_NAME}--2019-02-22T14-48-58DDUT"
+echo "url will be something like";
+echo $url
