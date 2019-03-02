@@ -1,5 +1,5 @@
 # Google Cloud project name
-PROJECT=nano-stream1    #`gcloud config get-value project`
+PROJECT=$(gcloud config get-value project)
 # Apache Beam Runner (set org.apache.beam.runners.dataflow.DataflowRunner for running in a Google Cloud Dataflow or org.apache.beam.runners.direct.DirectRunner for running locally on your computer)
 RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
 
@@ -14,7 +14,11 @@ ALIGNMENT_WINDOW=20
 STATS_UPDATE_FREQUENCY=30
 
 # Region where aligner cluster is running
-ALIGNER_REGION=asia-northeast1
+
+if [ ! $ALIGNER_REGION ]; then
+	echo "please define global parameter ALIGNER_REGION using e.g. export ALIGNER_REGION=\"asia-northeast1\""
+fi
+
 # IP address of the aligner cluster created by running aligner/provision_species.sh
 SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --region=${ALIGNER_REGION} --format="value(IPAddress)")
 # IP address of the aligner cluster created by running aligner/provision_resistance_genes.sh
@@ -41,7 +45,17 @@ ALIGNMENT_BATCH_SIZE=2000
 # Arguments that will be passed to BWA aligner (worker nodes machine_type). Default value - "-t 4". Can try "-t 8".
 BWA_ARGUMENTS='-t 4'
 
-java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+
+
+if [ ! -e "./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar" ]; then
+	echo "Cannot find ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar"
+	echo "please rebuild (see initialise_everything.sh)"
+	exit 1;
+fi
+
+
+
+java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
  com.google.allenday.nanostream.NanostreamApp \
  --runner=$RUNNER \
  --region=$ALIGNER_REGION \

@@ -1,9 +1,14 @@
 #!/bin/bash
 set -e
 
+
+if [ ! $ALIGNER_REGION ]; then
+	echo "please define global parameter ALIGNER_REGION using export ALIGNER_REGION=\"asia-northeast1\""
+fi
+
 # set environment variables
 export NAME="bwa-species-mm2"
-export REGION="asia-northeast1"
+export REGION=$ALIGNER_REGION
 export ZONE="${REGION}-c"
 export MACHINE_TYPE="n1-highmem-8"
 export MIN_REPLICAS=1
@@ -17,6 +22,6 @@ export BWA_FILES='gs://nano-stream1/Databases/CombinedDatabases/*'
 # this line set it value to the active project ID
 export REQUESTER_PROJECT=$(gcloud config get-value project)
 
-source provision.sh
+source provision_internal.sh
 
 [[ $1 = '-c' ]] && cleanup || setup

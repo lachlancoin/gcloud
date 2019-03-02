@@ -1,9 +1,13 @@
 #!/bin/bash
 set -e
 
+
+if [ ! $ALIGNER_REGION ]; then
+	echo "please define global parameter ALIGNER_REGION using export ALIGNER_REGION=\"asia-northeast1\""
+fi
 # set environment variables
 export NAME="bwa-resistance-genes"
-export REGION="asia-northeast1"
+export REGION=$ALIGNER_REGION
 export ZONE="${REGION}-c"
 export MACHINE_TYPE="n1-highmem-4"
 export MIN_REPLICAS=1
