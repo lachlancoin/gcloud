@@ -37,7 +37,12 @@ KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 RESISTANCE_GENES_LIST=gs://$PROJECT/Databases/resFinder/geneList
 
 # Collections name prefix of the Firestore database that will be used for writing results
-FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
+
+if [ ! $RESULTS_PREFIX ]; then
+	echo "please define global parameter RESULTS_PREFIX using e.g. export RESULTS_PREFIX=20192802_seq_expt1"
+	exit 1;
+fi
+FIRESTORE_COLLECTION_NAME_PREFIX=$RESULTS_PREFIX
 
 ## OPTIONAL ARGUMENTS
 
@@ -101,9 +106,7 @@ java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowM
 #\
 # --bwaArguments=$BWA_ARGUMENTS
 
-#FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
-#FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
 
-url="https://nano-stream1.appspot.com/?c=${FIRESTORE_COLLECTION_NAME_PREFIX}_species_sequences_statistic&d=${FIRESTORE_STATISTIC_DOCUMENT_NAME}--2019-02-22T14-48-58DDUT"
-echo "url will be something like";
+url="https://nano-stream1.appspot.com/?c=${FIRESTORE_COLLECTION_NAME_PREFIX}_species_sequences_statistic&d=${FIRESTORE_STATISTIC_DOCUMENT_NAME}"
+echo "url for results is";
 echo $url

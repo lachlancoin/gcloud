@@ -12,6 +12,8 @@
 export ALIGNER_REGION="asia-northeast1"
 PROJECT=$(gcloud config get-value project)
 
+##document name for results
+export RESULTS_PREFIX=20192802_expt1
 
 
 
