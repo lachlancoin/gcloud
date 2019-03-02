@@ -53,7 +53,26 @@ if [ ! -e "./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflo
 	exit 1;
 fi
 
-
+echo "java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
+ com.google.allenday.nanostream.NanostreamApp \
+ --runner=${RUNNER} \
+ --region=${ALIGNER_REGION} \
+ --project=${PROJECT} \
+ --streaming=true \
+ --processingMode=${PROCESSING_MODE} \
+ --inputDataSubscription=${UPLOAD_SUBSCRIPTION} \
+ --alignmentWindow=${ALIGNMENT_WINDOW} \
+ --statisticUpdatingDelay=${STATS_UPDATE_FREQUENCY} \
+ --servicesUrl=${SERVICES_HOST} \
+ --bwaEndpoint=${BWA_ENDPOINT} \
+ --bwaDatabase=${BWA_DATABASE} \
+ --kAlignEndpoint=${KALIGN_ENDPOINT} \
+ --outputFirestoreCollectionNamePrefix=${FIRESTORE_COLLECTION_NAME_PREFIX} \
+ --outputFirestoreStatisticDocumentName=${FIRESTORE_STATISTIC_DOCUMENT_NAME} \
+ --resistanceGenesList=${RESISTANCE_GENES_LIST} \
+ --alignmentBatchSize=${ALIGNMENT_BATCH_SIZE} \
+ --bwaArguments=${BWA_ARGUMENTS}
+"
 
 java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
  com.google.allenday.nanostream.NanostreamApp \
