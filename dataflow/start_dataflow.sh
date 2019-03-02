@@ -17,6 +17,7 @@ STATS_UPDATE_FREQUENCY=30
 
 if [ ! $ALIGNER_REGION ]; then
 	echo "please define global parameter ALIGNER_REGION using e.g. export ALIGNER_REGION=\"asia-northeast1\""
+	exit 1;
 fi
 
 # IP address of the aligner cluster created by running aligner/provision_species.sh
@@ -36,7 +37,12 @@ KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 RESISTANCE_GENES_LIST=gs://$PROJECT/Databases/resFinder/geneList
 
 # Collections name prefix of the Firestore database that will be used for writing results
-FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
+
+if [ ! $RESULTS_PREFIX ]; then
+	echo "please define global parameter RESULTS_PREFIX using e.g. export RESULTS_PREFIX=20192802_seq_expt1"
+	exit 1;
+fi
+FIRESTORE_COLLECTION_NAME_PREFIX=$RESULTS_PREFIX
 
 ## OPTIONAL ARGUMENTS
 
@@ -77,6 +83,8 @@ echo "java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDat
 #\
 # --bwaArguments=${BWA_ARGUMENTS}"
 
+
+
 java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
  com.google.allenday.nanostream.NanostreamApp \
  --runner=$RUNNER \
@@ -97,3 +105,8 @@ java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowM
  --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE 
 #\
 # --bwaArguments=$BWA_ARGUMENTS
+
+
+url="https://nano-stream1.appspot.com/?c=${FIRESTORE_COLLECTION_NAME_PREFIX}_species_sequences_statistic&d=${FIRESTORE_STATISTIC_DOCUMENT_NAME}"
+echo "url for results is";
+echo $url
