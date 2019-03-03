@@ -21,6 +21,8 @@ export TARGET_CPU_UTILIZATION=0.5
 export REQUESTER_PROJECT=$(gcloud config get-value project)
 
 
+##ASSUME THIS IS ALL FROM HOMEDIR
+cd $HOME
 
 
 #Manual steps:
@@ -80,6 +82,8 @@ export BWA_FILES=$BWA
 export MACHINE_TYPE=$MT
 export NAME=$NME
 export DOCKER_IMAGE=$DOCKER
+
+
 
 
 forward=$(grep "export NAME=" ./gcloud/aligner/$PROVISION_SCRIPT | cut -f 2 -d '=' | sed 's/"//g' )
