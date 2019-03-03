@@ -1,10 +1,26 @@
 #!/bin/bash
 PROJECT=$(gcloud config get-value project)
+##DELETE RELEVANT NOTIFICATION
+echo "deleting  notifications";
+##SHOULD PROBABLY NEVER NEED TO DO THIS
+if [ $UPLOAD_EVENTS ] ; then
+	gsutil notification list gs://$PROJECT > tmpfile.txt
+	prevline="";
+	while read line; do 
+	 mtch=$(echo $line | grep "${UPLOAD_EVENTS}" | wc -l  )
+	 if [ "$mtch" -eq 1 ]; then
+		torev=$(echo $prevline | cut -f 2 -d ' ')
+		echo "gsutil notification delete ${torev}"
+		gsutil notification delete $torev
+	 fi
+	 prevline=$line
+	done < tmpfile.txt
+	rm tmpfile.txt
 
-##DELETE ALL EXISTING NOTIFICATIONS:
-	echo "deleting all notifications";
-	echo "gcloud pubsub subscriptions list | grep name | cut -f 2 -d ' '  | xargs -I {} gcloud pubsub subscriptions delete {}"
-	echo "gsutil notification list ${PROJECT}   | grep  'projects/_/'  | xargs -I {} gsutil notification delete {}"
-	gcloud pubsub subscriptions list | grep 'name' | cut -f 2 -d ' '  | xargs -I {} gcloud pubsub subscriptions delete {}
-	gsutil notification list gs://$PROJECT   | grep  'projects/_/'  | xargs -I {} gsutil notification delete {}
+else
+	gsutil notification list gs://$PROJECT | grep  'projects/_/'  | xargs -I {} gsutil notification delete {}
+
+fi
+
+
 

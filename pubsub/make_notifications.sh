@@ -5,12 +5,28 @@
 
 PROJECT=$(gcloud config get-value project)
 
+if [ ! $UPLOAD_BUCKET ] ; then
+ echo "please define UPLOAD_BUCKET";
+ exit 1;
+fi
+
+if [ ! $UPLOAD_SUBSCRIPTION ] ; then
+ echo "please define UPLOAD_SUBSCRIPTION";
+ exit 1;
+fi
+
+if [ ! $UPLOAD_EVENTS ] ; then
+ echo "please define UPLOAD_EVENTS";
+ exit 1;
+fi
+
+bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
+if [ ! $bucket ]; then 
+	echo "could not find ${PROJECT}/${UPLOAD_BUCKET}";
+	exit 1;
+fi
 
 
-
-UPLOAD_EVENTS=UPLOAD_EVENTS
-UPLOAD_BUCKET=Uploads
-UPLOAD_SUBSCRIPTION="projects/${PROJECT}/subscriptions/dataflow_species"
 
 ##CHECK notifications
 notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT)

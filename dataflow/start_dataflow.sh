@@ -6,7 +6,11 @@ RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
 # specify mode of data processing (species, resistance_genes)
 PROCESSING_MODE=species
 # PubSub subscription defined above
-UPLOAD_SUBSCRIPTION=projects/nano-stream1/subscriptions/dataflow_species
+if [ ! $UPLOAD_SUBSCRIPTON ]; then
+	echo "please define UPLOAD_SUBSCRIPTION e.g. export ALIGNER_REGION=\"asia-northeast1\""
+	exit 1;
+fi
+
 
 # size of the window (in wallclock seconds) in which FastQ records will be collected for alignment
 ALIGNMENT_WINDOW=20
@@ -21,7 +25,12 @@ if [ ! $ALIGNER_REGION ]; then
 fi
 
 # IP address of the aligner cluster created by running aligner/provision_species.sh
-SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --region=${ALIGNER_REGION} --format="value(IPAddress)")
+
+if [ ! $FORWARDER ]; then
+	echo "please define parameter ${FORWARDER}"
+fi
+
+SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)")
 # IP address of the aligner cluster created by running aligner/provision_resistance_genes.sh
 #RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes-forward --region=${ALIGNER_REGION} --format="value(IPAddress)")
 # base URL for http services (bwa and kalign)
@@ -107,6 +116,5 @@ java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowM
 # --bwaArguments=$BWA_ARGUMENTS
 
 
-url="https://nano-stream1.appspot.com/?c=${FIRESTORE_COLLECTION_NAME_PREFIX}_species_sequences_statistic&d=${FIRESTORE_STATISTIC_DOCUMENT_NAME}"
-echo "url for results is";
-echo $url
+export URL="https://${PROJECT}.appspot.com/?c=${FIRESTORE_COLLECTION_NAME_PREFIX}_species_sequences_statistic&d=${FIRESTORE_STATISTIC_DOCUMENT_NAME}"
+echo $URL

@@ -1,21 +1,32 @@
 #!/bin/bash
 ##THIS SCRIPT MONITORS A LOCAL DIRECTORY FOR NEW FASTQ AND RSYNC
-#rt-sync.sh  path_to_fastq  sleep
+#bash ./gcloud/rt-sync.sh  path_to_fastq UPLOAD_BUCKET_ON_CLOUD
+
+dir=$1  #TARGET DIRECTORY
+UPLOAD_BUCKET=$2; 
 PROJECT=$(gcloud config get-value project)
 UPLOAD_EVENTS=UPLOAD_EVENTS
-UPLOAD_BUCKET=Uploads
-notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT)
+sleepbase=60  #HOW LONG TO SLEEP BETWEEN CHECKING
+
+bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
+if [ ! $bucket ]; then 
+	echo "could not find ${PROJECT}/${UPLOAD_BUCKET}";
+	exit 1;
+fi
+
+notif=$(gsutil notification list ${PROJECT} | grep $UPLOAD_EVENTS | grep $PROJECT)
+subscriptions=$(gcloud pubsub subscriptions list | grep $UPLOAD_EVENTS )
 echo "notifications:  "$notif
-#if [ ! $notif ] ; then
-# echo "WARNING: no notifications are set for file uploads";
-# exit 1;
-#fi
+echo "subscriptoins:  "$subscriptions
+
+if [ ! $notif ] || [ ! $subscriptions ]  ; then
+ echo "Need to have subscriptions and notifications set"
+ exit 1
+fi
 
 #CHECKING INPUT PARAMETERS
-dir=$1  #TARGET DIRECTORY
-sleepbase=$2  #HOW LONG TO SLEEP
-if [ ! $sleepbase ] || [ ! $dir ] ; then 
-	echo "usage:  rt-sync.sh  path_to_fastq dir"
+if  [ ! $dir ] || [ ! $UPLOAD_BUCKET ]; then 
+	echo "usage:  rt-sync.sh  path_to_fastq"
 	exit 1;	
 fi
 lastchar=$(echo $1 | rev | cut -b 1)
@@ -27,13 +38,11 @@ fi
 
 
 
-GOOGLE="gs://${PROJECT}/Uploads"
+GOOGLE="gs://${PROJECT}/{$UPLOAD_BUCKET}"
 dirname=$(echo $dir  | rev | cut -f 1 -d /  | rev)
 targetg=${GOOGLE}/${dirname}
 echo "target is "$target
 currdir=$(pwd)
-
-
 timeout=3600   ##TIME TO WAIT FOR NEW FASTQ IN SECONDS BEFORE FINISHING
 diff=0
 run=0  #starts as zero
