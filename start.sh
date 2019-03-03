@@ -82,18 +82,12 @@ export BWA_FILES=$BWA
 export MACHINE_TYPE=$MT
 export NAME=$NME
 export DOCKER_IMAGE=$DOCKER
-
-
-
-
-forward=$(grep "export NAME=" ./gcloud/aligner/$PROVISION_SCRIPT | cut -f 2 -d '=' | sed 's/"//g' )
-if [ ! $forward ]; then 
-echo "could not identify forwarder";
-exit 1;
-fi
-
 export FORWARDER="${NAME}-forward";
 
+if [ ! $NAME ] ;
+	echo "NAME was not defined";
+	exit 1
+fi
 #CHECK EVERYTHING SET UP ON CLOUD:
 bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
 if [ ! $bucket ]; then 
@@ -152,10 +146,7 @@ if [ ! $provisioned ]; then
 	setup
 fi
 
-if [ ! $NAME ] ;
-	echo "NAME was not defined";
-	exit 1
-fi
+
 
 
 
