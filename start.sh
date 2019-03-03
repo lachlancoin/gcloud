@@ -6,6 +6,23 @@ export RESULTS_PREFIX=$(date '+%Y%m%d%H%m')
 export UPLOAD_BUCKET="Uploads"; 
 export UPLOAD_EVENTS="UPLOAD_EVENTS"
 
+#export NAME="bwa-resistance-genes"
+export REGION=$ALIGNER_REGION
+export ZONE="${REGION}-c"
+export MACHINE_TYPE="n1-highmem-4"
+export MIN_REPLICAS=1
+export MAX_REPLICAS=3
+export TARGET_CPU_UTILIZATION=0.5
+
+
+
+# REQUESTER_PROJECT - project billed for downloading BWA_FILES
+# this line set it value to the active project ID
+export REQUESTER_PROJECT=$(gcloud config get-value project)
+
+
+
+
 #Manual steps:
 #1. Set up firestore as part of gcloud account setup
 #2. Create storage bucket  $UPLOAD_BUCKET
@@ -15,24 +32,42 @@ export UPLOAD_EVENTS="UPLOAD_EVENTS"
 #6. On cloud she run  bash ./gcloud/start.sh bwa_species
 #7. From local computer Run:  bash ./gcloud/realtime/rt-sync.sh  local_path_to_fastq $UPLOAD_BUCKET
 #8. When finished run bash ./gcloud/shutdown.sh
-
+DATABASES="${PROJECT}/Databases"
+SPECIES_DB="CombinedDatabases"
+RESISTANCE_DB="resFinder"
 OPTION=$1  
+if [ ! $OPTION ]; then
+ echo "usage bash start.sh bwa-species"
+fi 
+
 case $OPTION in
         'bwa-species') 
-		  SCRIPT="provision_species_bwa.sh";
-	 	  SUBSCRIPTION="dataflow_species"
+	 	SUBSCRIPTION="dataflow_species"
+		BWA="${DATABASES}/${SPECIES_DB}/*"
+		NME="bwa-species"
+		MT="n1-highmem-8"
+		DOCKER='allenday/bwa-http-docker:http'
             ;;
         'mm2-species') 
-	  	SCRIPT="provision_species_mm2.sh";
 	 	SUBSCRIPTION="dataflow_species_mm2"
+		BWA="${DATABASES}/${SPECIES_DB}/*"
+		NME="bwa-species-mm2"
+		MT="n1-highmem-8"
+		DOCKER='dockersubtest/nano-gcp-http'
             ;;
         'bwa-resistance')  
-	   	SCRIPT="provision_resistance_bwa.sh";
-	   	SUBSCRIPTION="dataflow_resistance "
+	   	SUBSCRIPTION="dataflow_resistance"
+		BWA="${DATABASES}/${RESISTANCE_DB}/*"
+		NME="bwa-resistance-genes"
+		MT="n1-highmem-4"
+		DOCKER='allenday/bwa-http-docker:http'
             ;;
         'mm2-resistance')  
- 		SCRIPT="provision_resistance_mm2.sh";
 	        SUBSCRIPTION="dataflow_resistance_mm2 "
+		BWA="${DATABASES}/${RESISTANCE_DB}/*"
+		NME="bwa-resistance-genes-mm2"
+		MT="n1-highmem-4"
+		DOCKER='dockersubtest/nano-gcp-http'
             ;;
 	 \?) #unrecognized option 
           	 echo "not recognised"
@@ -41,8 +76,12 @@ case $OPTION in
 esac
 
 export UPLOAD_SUBSCRIPTION="projects/nano-stream1/subscriptions/${SUBSCRIPTION}"
-export PROVISION_SCRIPT=$SCRIPT
-echo "provisioning script is ${PROVISION_SCRIPT}";
+export BWA_FILES=$BWA
+export MACHINE_TYPE=$MT
+export NAME=$NME
+export DOCKER_IMAGE=$DOCKER
+
+
 forward=$(grep "export NAME=" ./gcloud/aligner/$PROVISION_SCRIPT | cut -f 2 -d '=' | sed 's/"//g' )
 if [ ! $forward ]; then 
 echo "could not identify forwarder";
@@ -105,9 +144,8 @@ fi
 ##PROVISION aligner cluster
 provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER}--region=${ALIGNER_REGION} --format="value(IPAddress)" | grep 'loadBalancing')
 if [ ! $provisioned ]; then 
-	cd ./gcloud/aligner
-	bash ./${PROVISION_SCRIPT}
-	cd ../../
+	source ./gcloud/aligner/provision_internal.sh
+	setup
 fi
 
 if [ ! $NAME ] ;
