@@ -14,7 +14,8 @@ export MIN_REPLICAS=1
 export MAX_REPLICAS=3
 export TARGET_CPU_UTILIZATION=0.5
 
-
+CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
+echo "CLOUDSHELL "$cloudshell
 
 # REQUESTER_PROJECT - project billed for downloading BWA_FILES
 # this line set it value to the active project ID
@@ -23,6 +24,8 @@ export REQUESTER_PROJECT=$(gcloud config get-value project)
 
 ##ASSUME THIS IS ALL FROM HOMEDIR
 cd $HOME
+if [ -e "./github" ]; then cd github ; fi
+echo $pwd
 
 
 #Manual steps:
@@ -39,7 +42,8 @@ SPECIES_DB="CombinedDatabases"
 RESISTANCE_DB="resFinder"
 OPTION=$1  
 if [ ! $OPTION ]; then
- echo "usage bash start.sh bwa-species"
+ echo "usage bash start.sh bwa-species mm2-species bwa-resistance mm2-resistance"
+ exit 1
 fi 
 
 case $OPTION in
@@ -84,10 +88,7 @@ export NAME=$NME
 export DOCKER_IMAGE=$DOCKER
 export FORWARDER="${NAME}-forward";
 
-if [ ! $NAME ] ;
-	echo "NAME was not defined";
-	exit 1
-fi
+
 #CHECK EVERYTHING SET UP ON CLOUD:
 bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
 if [ ! $bucket ]; then 
@@ -122,7 +123,8 @@ else
 fi
 
 ##build jar /NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar if it doesnt exist
-if [ ! -e './nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar' ]; then
+if [ ! -e "./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar" ]; then
+	echo "BUILDING UBER JAR"
 	if [ ! -e './nanostream-dataflow/NanostreamDataflowMain/libs/japsa.jar' ]; then
 		echo 'cannot find ./NanostreamDataflowMain/libs/japsa.jar'
 		exit 1
@@ -135,15 +137,21 @@ if [ ! -e './nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflo
 	if [ ! -e './target/NanostreamDataflowMain-1.0-SNAPSHOT.jar' ]; then
 	  echo 'not successfully built'
 	  exit 1;
-	if
+	fi
 	cd ../..  #back to top level
 fi
 
 ##PROVISION aligner cluster
-provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER}--region=${ALIGNER_REGION} --format="value(IPAddress)" | grep 'loadBalancing')
-if [ ! $provisioned ]; then 
-	source ./gcloud/aligner/provision_internal.sh
-	setup
+
+provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)" | grep 'loadBalancing' | wc -l )
+if [ "$provisioned" -eq 0 ]; then 
+	#if [ "$CLOUDSHELL" -eq 1 ]; then
+		source ./gcloud/aligner/provision_internal.sh
+		echo "provisioning aligner cluster"
+		setup
+else 
+	echo "already provisioned"
+	#fi
 fi
 
 
@@ -151,15 +159,17 @@ fi
 
 
 SLEEP=60
-while [ ! $provisioned ]; do
-	provisioned=$(gcloud compute forwarding-rules describe bwa-species-forward --region=${ALIGNER_REGION} --format="value(IPAddress)" | grep 'loadBalancing')
+while [ "$provisioned" -eq 0 ]; do
+	provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)" | grep 'loadBalancing' | wc -l)
 	echo "sleeping ${SLEEP} while waiting for alignment cluster";
 	sleep $SLEEP
 done
 
+
+if [ "$CLOUDSHELL" -eq 1 ]; then
 echo "starting dataflow"
 source ./gcloud/dataflow/start_dataflow.sh 
-
+fi
 
 ##NEXT STEPS , SYNCHRONISE LOCAL DATA DIR WITH CLOUD BUCKET
 #

@@ -29,17 +29,21 @@ fi
 
 
 ##CHECK notifications
-notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT)
+notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
 
 ##CREATE NOTIFICATION FOR FILE UPLOADS
-if [ ! $notif ] ; then
+if [ "$notif" -ge 1 ] ; then
+	echo $notif
+else
 	echo "gsutil notification create -t ${UPLOAD_EVENTS} -f json  -e OBJECT_FINALIZE -p ${UPLOAD_BUCKET} gs://${PROJECT}"
 	gsutil notification create -t $UPLOAD_EVENTS -f json  -e OBJECT_FINALIZE -p $UPLOAD_BUCKET "gs://"$PROJECT
 fi
 
 ##CREATE SUBSCRIPTION
-subs=$(gcloud pubsub subscriptions list | grep $UPLOAD_SUBSCRIPTION | grep $PROJECT)
-if [ ! $subs ] ; then
+subs=$(gcloud pubsub subscriptions list | grep $UPLOAD_SUBSCRIPTION | grep $PROJECT | wc -l )
+if [ "$subs" -ge 1 ]; then
+	echo $subs
+else 
 	echo "gcloud pubsub subscriptions create ${UPLOAD_SUBSCRIPTION} --topic ${UPLOAD_EVENTS}"
 	gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 fi
