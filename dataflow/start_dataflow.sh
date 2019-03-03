@@ -58,7 +58,7 @@ FIRESTORE_COLLECTION_NAME_PREFIX=$RESULTS_PREFIX
 # Firestore database document name that will be used for writing statistic results. You can specify it otherwise it will be generated automatically
 FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
 # Max size of batch that will be generated before alignment. Default value - 2000
-ALIGNMENT_BATCH_SIZE=2000
+ALIGNMENT_BATCH_SIZE=4000
 # Arguments that will be passed to BWA aligner (worker nodes machine_type). Default value - "-t 4". Can try "-t 8".
 BWA_ARGUMENTS='"-t 4"'
 
