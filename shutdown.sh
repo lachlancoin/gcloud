@@ -1,5 +1,5 @@
 #!/bin/bash
-
+PROJECT=$(gcloud config get-value project)
 if [ ! $ALIGNER_REGION ]; then
 	echo "please define global parameter ALIGNER_REGION using e.g. export ALIGNER_REGION=\"asia-northeast1\""
 	exit 1;
@@ -10,7 +10,7 @@ if [ ! $UPLOAD_SUBSCRIPTION ]; then
 	exit 1;
 fi
 
-gcloud dataflow jobs list | grep Running | cut -f 1 -d ' ' | xargs -I {} gcloud dataflow jobs --project=nano-stream1 cancel --region=$ALIGNER_REGION {}
+gcloud dataflow jobs list | grep Running | cut -f 1 -d ' ' | xargs -I {} gcloud dataflow jobs --project=$PROJECT cancel --region=$ALIGNER_REGION {}
 
 #DE-COMMISSION ALIGNER
 source ./gcloud/aligner/provision_internal.sh
