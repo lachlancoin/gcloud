@@ -12,6 +12,9 @@ SPECIES_DB="ToxoHumanBacteriaVirus"
 RESISTANCE_DB="resFinder"
 OPTION=$1  
 
+mkdir -p parameters
+paramsfile="parameters/params"
+
 echo $ALIGNER_REGION
 if [ ! $OPTION ]; then
  echo "usage bash start.sh|bwa-species|mm2-species|bwa-resistance|mm2-resistance"
@@ -92,30 +95,29 @@ export FORWARDER="${NAME}-forward";
 export REQUESTER_PROJECT=$(gcloud config get-value project)
 
 ##SAVE PARAMETERS
-mkdir -p parameters
-paramsfile="parameters/params"
+
 if [ -e $paramsfile ]; then
-	dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
-	mv $paramsfile "parameters/params_${dinfo}"
+	source $paramsfile
+	#dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
+	#mv $paramsfile "parameters/params_${dinfo}"
+else
+	echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
+	echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
+	echo "export UPLOAD_BUCKET=\"${ALIGNER_REGION}\"" >> $paramsfile
+	echo "export UPLOAD_EVENTS=\"${UPLOAD_EVENTS}\"" >> $paramsfile
+	echo "export REGION=\"${REGION}\"" >> $paramsfile
+	echo "export ZONE=\"${ZONE}\"" >> $paramsfile
+	echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
+	echo "export MIN_REPLICAS=\"${MIN_REPLICAS}\"" >> $paramsfile
+	echo "export MAX_REPLICAS=\"${MAX_REPLIACES}\"" >> $paramsfile
+	echo "export TARGET_CPU_UTILIZATION=\"${TARGET_CPU_UTILIZATION}\"" >> $paramsfile
+	echo "export UPLOAD_SUBSCRIPTION=\"${UPLOAD_SUBSCRIPTION}\"" >> $paramsfile
+	echo "export BWA_FILES=\"${BWA_FILES}\"" >> $paramsfile
+	echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
+	echo "export NAME=\"${NAME}\"" >> $paramsfile
+	echo "export DOCKER_IMAGE=\"${DOCKER_IMAGE}\"" >> $paramsfile
+	echo "export FORWARDER=\"${FORWARDER}\"" >> $paramsfile
 fi
-
-echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
-echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
-echo "export UPLOAD_BUCKET=\"${ALIGNER_REGION}\"" >> $paramsfile
-echo "export UPLOAD_EVENTS=\"${UPLOAD_EVENTS}\"" >> $paramsfile
-echo "export REGION=\"${REGION}\"" >> $paramsfile
-echo "export ZONE=\"${ZONE}\"" >> $paramsfile
-echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
-echo "export MIN_REPLICAS=\"${MIN_REPLICAS}\"" >> $paramsfile
-echo "export MAX_REPLICAS=\"${MAX_REPLIACES}\"" >> $paramsfile
-echo "export TARGET_CPU_UTILIZATION=\"${TARGET_CPU_UTILIZATION}\"" >> $paramsfile
-echo "export UPLOAD_SUBSCRIPTION=\"${UPLOAD_SUBSCRIPTION}\"" >> $paramsfile
-echo "export BWA_FILES=\"${BWA_FILES}\"" >> $paramsfile
-echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
-echo "export NAME=\"${NAME}\"" >> $paramsfile
-echo "export DOCKER_IMAGE=\"${DOCKER_IMAGE}\"" >> $paramsfile
-echo "export FORWARDER=\"${FORWARDER}\"" >> $paramsfile
-
 
 
 #CHECK EVERYTHING SET UP ON CLOUD:
