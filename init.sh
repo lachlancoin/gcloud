@@ -101,7 +101,7 @@ else
 	export DOCKER_IMAGE=$DOCKER
 	export FORWARDER="${NAME}-forward";
 	export REQUESTER_PROJECT=$(gcloud config get-value project)
-
+	export RESISTANCE_GENES_LIST=gs://$DATABASES/$RESISTANCE_DB/geneList
 	##SAVE PARAMETERS
 
 	if [ -e $paramsfile ]; then
@@ -128,6 +128,8 @@ else
 		echo "export DATABASES=\"${DATABASES}\"" >> $paramsfile
 		echo "export SPECIES_DB=\"${SPECIES_DB}\"" >> $paramsfile
 		echo "export RESISTANCE_DB=\"${RESISTANCE_DB}\"" >> $paramsfile
+		echo "export RESISTANCE_GENES_LIST=\"${RESISTANCE_GENES_LIST}\"" >> $paramsfile
+		gsutil rsync parameters gs://$PROJECT/parameters
 	fi
 fi
 
