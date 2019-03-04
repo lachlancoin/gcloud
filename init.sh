@@ -16,6 +16,11 @@ mkdir -p parameters
 paramsfile="parameters/params"
 if [ -e $paramsfile ]; then
 	source $paramsfile
+	if [ $OPTION ]; then
+	 echo "there is an existing parameter file, so no need to specify an option.  Either move ${paramsfile} or run bash start.sh"
+	 exit 1
+	fi 
+
 else
 	OPTION=$1 
 	if [ ! $OPTION ]; then
