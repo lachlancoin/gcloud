@@ -7,130 +7,126 @@ if [ -e "./github" ]; then cd github ; fi
 
 
 
+ 
 DATABASES="${PROJECT}/Databases"
 SPECIES_DB="ToxoHumanBacteriaVirus"
 RESISTANCE_DB="resFinder"
-OPTION=$1  
 
 mkdir -p parameters
 paramsfile="parameters/params"
-
-echo $ALIGNER_REGION
-if [ ! $OPTION ]; then
- echo "usage bash start.sh|bwa-species|mm2-species|bwa-resistance|mm2-resistance"
- exit 1
-fi 
-
-case $OPTION in
-        'bwa-species') 
-	 	SUBSCRIPTION="dataflow_species"
-		BWA="gs://${DATABASES}/${SPECIES_DB}"
-		NME="bwa-species"
-		MT="n1-highmem-8"
-		DOCKER='allenday/bwa-http-docker:http'
-		file_to_check='genomeDB.fasta.bwt' ;
-		file_to_check1='commontree.txt.css.mod' ;
-            ;;
-        'mm2-species') 
-	 	SUBSCRIPTION="dataflow_species_mm2"
-		BWA="gs://${DATABASES}/${SPECIES_DB}"
-		NME="bwa-species-mm2"
-		MT="n1-highmem-8"
-		DOCKER='dockersubtest/nano-gcp-http'
-		file_to_check='genomeDB.fasta.mmi' ;
-		file_to_check1='commontree.txt.css.mod' ;
-            ;;
-        'bwa-resistance')  
-	   	SUBSCRIPTION="dataflow_resistance"
-		BWA="gs://${DATABASES}/${RESISTANCE_DB}"
-		NME="bwa-resistance-genes"
-		MT="n1-highmem-4"
-		DOCKER='allenday/bwa-http-docker:http'
-		file_to_check='DB.fasta.bwt' ;
-		file_to_check1='commontree.txt.css.mod' ;
-            ;;
-        'mm2-resistance')  
-	        SUBSCRIPTION="dataflow_resistance_mm2 "
-		BWA="gs://${DATABASES}/${RESISTANCE_DB}"
-		NME="bwa-resistance-genes-mm2"
-		MT="n1-highmem-4"
-		DOCKER='dockersubtest/nano-gcp-http'
-		file_to_check='DB.fasta.mmi' ;
-		file_to_check1='commontree.txt.css.mod' ;
-            ;;
-	 \?) #unrecognized option 
-          	 echo "not recognised"
-	  	 exit 1;
-            ;;
-esac
-
-checkbwa=$(gsutil ls $BWA | grep $file_to_check | wc -l )
-checkbwa1=$(gsutil ls $BWA | grep $file_to_check1 | wc -l )
-if [ "$checkbwa" -ne 1 ] ; then
-echo "gsutil ls ${BWA} | grep ${file_to_check} | wc -l"
-echo  "could not find ${file_to_check} in ${BWA}";
-fi
-if [ "$checkbwa1" -ne 1 ] ; then
-echo "gsutil ls ${BWA} | grep ${file_to_check1} | wc -l "
-echo  "could not find ${file_to_check1} in ${BWA}";
-fi
-currdate=$(date '+%Y%m%d%H%m')
-
-export ALIGNER_REGION="asia-northeast1"
-export RESULTS_PREFIX=$currdate
-export UPLOAD_BUCKET="Uploads"; 
-export UPLOAD_EVENTS="UPLOAD_EVENTS"
-export REGION=$ALIGNER_REGION
-export ZONE="${REGION}-c"
-export MACHINE_TYPE="n1-highmem-4"
-export MIN_REPLICAS=1
-export MAX_REPLICAS=3
-export TARGET_CPU_UTILIZATION=0.5
-export UPLOAD_SUBSCRIPTION="projects/nano-stream1/subscriptions/${SUBSCRIPTION}"
-export BWA_FILES="${BWA}/*"
-export MACHINE_TYPE=$MT
-export NAME=$NME
-export DOCKER_IMAGE=$DOCKER
-export FORWARDER="${NAME}-forward";
-export REQUESTER_PROJECT=$(gcloud config get-value project)
-
-##SAVE PARAMETERS
-
 if [ -e $paramsfile ]; then
 	source $paramsfile
-	#dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
-	#mv $paramsfile "parameters/params_${dinfo}"
 else
-	echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
-	echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
-	echo "export UPLOAD_BUCKET=\"${ALIGNER_REGION}\"" >> $paramsfile
-	echo "export UPLOAD_EVENTS=\"${UPLOAD_EVENTS}\"" >> $paramsfile
-	echo "export REGION=\"${REGION}\"" >> $paramsfile
-	echo "export ZONE=\"${ZONE}\"" >> $paramsfile
-	echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
-	echo "export MIN_REPLICAS=\"${MIN_REPLICAS}\"" >> $paramsfile
-	echo "export MAX_REPLICAS=\"${MAX_REPLIACES}\"" >> $paramsfile
-	echo "export TARGET_CPU_UTILIZATION=\"${TARGET_CPU_UTILIZATION}\"" >> $paramsfile
-	echo "export UPLOAD_SUBSCRIPTION=\"${UPLOAD_SUBSCRIPTION}\"" >> $paramsfile
-	echo "export BWA_FILES=\"${BWA_FILES}\"" >> $paramsfile
-	echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
-	echo "export NAME=\"${NAME}\"" >> $paramsfile
-	echo "export DOCKER_IMAGE=\"${DOCKER_IMAGE}\"" >> $paramsfile
-	echo "export FORWARDER=\"${FORWARDER}\"" >> $paramsfile
+	OPTION=$1 
+	if [ ! $OPTION ]; then
+	 echo "usage bash start.sh|bwa-species|mm2-species|bwa-resistance|mm2-resistance"
+	 exit 1
+	fi 
+
+	case $OPTION in
+		'bwa-species') 
+		 	SUBSCRIPTION="dataflow_species"
+			BWA="gs://${DATABASES}/${SPECIES_DB}"
+			NME="bwa-species"
+			MT="n1-highmem-8"
+			DOCKER='allenday/bwa-http-docker:http'
+			file_to_check='genomeDB.fasta.bwt' ;
+			file_to_check1='commontree.txt.css.mod' ;
+		    ;;
+		'mm2-species') 
+		 	SUBSCRIPTION="dataflow_species_mm2"
+			BWA="gs://${DATABASES}/${SPECIES_DB}"
+			NME="bwa-species-mm2"
+			MT="n1-highmem-8"
+			DOCKER='dockersubtest/nano-gcp-http'
+			file_to_check='genomeDB.fasta.mmi' ;
+			file_to_check1='commontree.txt.css.mod' ;
+		    ;;
+		'bwa-resistance')  
+		   	SUBSCRIPTION="dataflow_resistance"
+			BWA="gs://${DATABASES}/${RESISTANCE_DB}"
+			NME="bwa-resistance-genes"
+			MT="n1-highmem-4"
+			DOCKER='allenday/bwa-http-docker:http'
+			file_to_check='DB.fasta.bwt' ;
+			file_to_check1='commontree.txt.css.mod' ;
+		    ;;
+		'mm2-resistance')  
+			SUBSCRIPTION="dataflow_resistance_mm2 "
+			BWA="gs://${DATABASES}/${RESISTANCE_DB}"
+			NME="bwa-resistance-genes-mm2"
+			MT="n1-highmem-4"
+			DOCKER='dockersubtest/nano-gcp-http'
+			file_to_check='DB.fasta.mmi' ;
+			file_to_check1='commontree.txt.css.mod' ;
+		    ;;
+		 \?) #unrecognized option 
+		  	 echo "not recognised"
+		  	 exit 1;
+		    ;;
+	esac
+
+	#CHECK EVERYTHING SET UP ON CLOUD:
+	checkbwa=$(gsutil ls $BWA | grep $file_to_check | wc -l )
+	checkbwa1=$(gsutil ls $BWA | grep $file_to_check1 | wc -l )
+	if [ "$checkbwa" -ne 1 ] ; then
+		echo  "could not find ${file_to_check} in ${BWA}";
+	exit 1;
+	fi
+	if [ "$checkbwa1" -ne 1 ] ; then
+		echo  "could not find ${file_to_check1} in ${BWA}";
+	exit 1;
+	fi
+	currdate=$(date '+%Y%m%d%H%m')
+
+	export ALIGNER_REGION="asia-northeast1"
+	export RESULTS_PREFIX=$currdate
+	export UPLOAD_BUCKET="Uploads"; 
+	export UPLOAD_EVENTS="UPLOAD_EVENTS"
+	export REGION=$ALIGNER_REGION
+	export ZONE="${REGION}-c"
+	export MACHINE_TYPE="n1-highmem-4"
+	export MIN_REPLICAS=1
+	export MAX_REPLICAS=3
+	export TARGET_CPU_UTILIZATION=0.5
+	export UPLOAD_SUBSCRIPTION="projects/nano-stream1/subscriptions/${SUBSCRIPTION}"
+	export BWA_FILES="${BWA}/*"
+	export MACHINE_TYPE=$MT
+	export NAME=$NME
+	export DOCKER_IMAGE=$DOCKER
+	export FORWARDER="${NAME}-forward";
+	export REQUESTER_PROJECT=$(gcloud config get-value project)
+
+	##SAVE PARAMETERS
+
+	if [ -e $paramsfile ]; then
+		source $paramsfile
+		#dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
+		#mv $paramsfile "parameters/params_${dinfo}"
+	else
+		echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
+		echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
+		echo "export UPLOAD_BUCKET=\"${ALIGNER_REGION}\"" >> $paramsfile
+		echo "export UPLOAD_EVENTS=\"${UPLOAD_EVENTS}\"" >> $paramsfile
+		echo "export REGION=\"${REGION}\"" >> $paramsfile
+		echo "export ZONE=\"${ZONE}\"" >> $paramsfile
+		echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
+		echo "export MIN_REPLICAS=\"${MIN_REPLICAS}\"" >> $paramsfile
+		echo "export MAX_REPLICAS=\"${MAX_REPLIACES}\"" >> $paramsfile
+		echo "export TARGET_CPU_UTILIZATION=\"${TARGET_CPU_UTILIZATION}\"" >> $paramsfile
+		echo "export UPLOAD_SUBSCRIPTION=\"${UPLOAD_SUBSCRIPTION}\"" >> $paramsfile
+		echo "export BWA_FILES=\"${BWA_FILES}\"" >> $paramsfile
+		echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
+		echo "export NAME=\"${NAME}\"" >> $paramsfile
+		echo "export DOCKER_IMAGE=\"${DOCKER_IMAGE}\"" >> $paramsfile
+		echo "export FORWARDER=\"${FORWARDER}\"" >> $paramsfile
+		echo "export DATABASES=\"${DATABASES}\"" >> $paramsfile
+		echo "export SPECIES_DB=\"${SPECIES_DB}\"" >> $paramsfile
+		echo "export RESISTANCE_DB=\"${RESISTANCE_DB}\"" >> $paramsfile
+	fi
 fi
 
 
-#CHECK EVERYTHING SET UP ON CLOUD:
-checkbwa=$(gsutil ls $BWA | grep $file_to_check | wc -l )
-checkbwa1=$(gsutil ls $BWA | grep $file_to_check1 | wc -l )
-if [ "$checkbwa" -ne 1 ] ; then
-echo  "could not find ${file_to_check} in ${BWA}";
-exit 1;
-fi
-if [ "$checkbwa1" -ne 1 ] ; then
-	echo  "could not find ${file_to_check1} in ${BWA}";
-exit 1;
-fi
 
 
 bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
