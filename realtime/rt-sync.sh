@@ -16,7 +16,8 @@ PROJECT=$(gcloud config get-value project)
 sleepbase=60  #HOW LONG TO SLEEP BETWEEN CHECKING
 
 #GETS THE CURRENT RUNNING PARAMETERS
-gsutil rsync  gs://$PROJECT/parameters parameters
+mkdir -p parameters
+gsutil cp  gs://$PROJECT/parameters/params parameters/params
 source parameters/params
 
 

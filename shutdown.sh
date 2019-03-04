@@ -6,6 +6,11 @@ PROJECT=$(gcloud config get-value project)
 CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
 echo "CLOUDSHELL "$cloudshell
 
+if [ "$CLOUDSHELL" -ne 1 ]; then
+	mkdir -p parameters
+	gsutil cp  gs://$PROJECT/parameters/params parameters/params
+fi
+
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
 if [ $1 ]; then
@@ -23,8 +28,11 @@ if [ ! $UPLOAD_SUBSCRIPTION ]; then
 	echo "please define UPLOAD_SUBSCRIPTION"
 	exit 1;
 fi
-
-gcloud dataflow jobs list | grep Running | cut -f 1 -d ' ' | xargs -I {} gcloud dataflow jobs --project=$PROJECT cancel --region=$ALIGNER_REGION {}
+if [ $JOBID ]; then
+	gcloud dataflow jobs list | grep ${JOBID}  | cut -f 1 -d ' ' | xargs -I {} gcloud dataflow jobs --project=$PROJECT cancel --region=$ALIGNER_REGION {}
+else
+	gcloud dataflow jobs list | grep Running | cut -f 1 -d ' ' | xargs -I {} gcloud dataflow jobs --project=$PROJECT cancel --region=$ALIGNER_REGION {}
+fi
 
 #DE-COMMISSION ALIGNER
 source ./gcloud/aligner/provision_internal.sh

@@ -4,6 +4,12 @@ PROJECT=$(gcloud config get-value project)
 CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
 echo "CLOUDSHELL "$cloudshell
 
+if [ "$CLOUDSHELL" -ne 1 ]; then
+	mkdir -p parameters
+	gsutil cp  gs://$PROJECT/parameters/params parameters/params
+fi
+
+
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
 if [ $1 ]; then

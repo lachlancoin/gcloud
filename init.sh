@@ -131,7 +131,7 @@ else
 		echo "export SPECIES_DB=\"${SPECIES_DB}\"" >> $paramsfile
 		echo "export RESISTANCE_DB=\"${RESISTANCE_DB}\"" >> $paramsfile
 		echo "export RESISTANCE_GENES_LIST=\"${RESISTANCE_GENES_LIST}\"" >> $paramsfile
-		
+		gsutil rsync parameters gs://$PROJECT/parameters
 	fi
 fi
 
@@ -237,8 +237,8 @@ if [ "$CLOUDSHELL" -eq 1 ]; then
 
 
 fi
+gsutil cp parameters/params gs://$PROJECT/parameters/params
 
-gsutil rsync parameters gs://$PROJECT/parameters
 
 
 ##NEXT STEPS , SYNCHRONISE LOCAL DATA DIR WITH CLOUD BUCKET
