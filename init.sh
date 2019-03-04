@@ -12,6 +12,8 @@ DATABASES="${PROJECT}/Databases"
 SPECIES_DB="ToxoHumanBacteriaVirus"
 RESISTANCE_DB="resFinder"
 
+RESNAME="ICU";
+
 mkdir -p parameters
 paramsfile="parameters/params"
 if [ -e $paramsfile ]; then
@@ -85,7 +87,7 @@ else
 	currdate=$(date '+%Y%m%d%H%m')
 
 	export ALIGNER_REGION="asia-northeast1"
-	export RESULTS_PREFIX=$currdate
+	export RESULTS_PREFIX="${RESNAME}_${currdate}"
 	export UPLOAD_BUCKET="Uploads"; 
 	export UPLOAD_EVENTS="UPLOAD_EVENTS"
 	export REGION=$ALIGNER_REGION
@@ -129,7 +131,7 @@ else
 		echo "export SPECIES_DB=\"${SPECIES_DB}\"" >> $paramsfile
 		echo "export RESISTANCE_DB=\"${RESISTANCE_DB}\"" >> $paramsfile
 		echo "export RESISTANCE_GENES_LIST=\"${RESISTANCE_GENES_LIST}\"" >> $paramsfile
-		gsutil rsync parameters gs://$PROJECT/parameters
+		
 	fi
 fi
 
@@ -229,14 +231,14 @@ if [ "$CLOUDSHELL" -eq 1 ]; then
 	else
 		echo "starting dataflow"
 		source ./gcloud/dataflow/start_dataflow.sh 
-		JOBID=$(gcloud dataflow jobs list | head -n 2 | grep -v 'JOB_ID' | cut -f 1 -d  ' ')
+		JOBID=$(gcloud dataflow jobs list | grep 'Running' | cut -f 1 -d  ' ')
 		echo "export JOBID=\"${JOBID}\"" >> $paramsfile
 	fi	
 
 
 fi
 
-
+gsutil rsync parameters gs://$PROJECT/parameters
 
 
 ##NEXT STEPS , SYNCHRONISE LOCAL DATA DIR WITH CLOUD BUCKET
