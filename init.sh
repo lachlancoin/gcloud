@@ -60,13 +60,16 @@ case $OPTION in
 	  	 exit 1;
             ;;
 esac
-checkbwa=$(gsutil ls $loc_to_check | grep $file_to_check | wc -l )
-checkbwa1=$(gsutil ls $loc_to_check | grep $file_to_check1 | wc -l )
-if [ "$checkbwa" -neq 1 ] ; then
-echo  "could not find ${file_to_check} in ${loc_to_check}";
+
+checkbwa=$(gsutil ls $BWA | grep $file_to_check | wc -l )
+checkbwa1=$(gsutil ls $BWA | grep $file_to_check1 | wc -l )
+if [ "$checkbwa" -ne 1 ] ; then
+echo "gsutil ls ${BWA} | grep ${file_to_check} | wc -l"
+echo  "could not find ${file_to_check} in ${BWA}";
 fi
-if [ "$checkbwa1" -neq 1 ] ; then
-echo  "could not find ${file_to_check1} in ${loc_to_check}";
+if [ "$checkbwa1" -ne 1 ] ; then
+echo "gsutil ls ${BWA} | grep ${file_to_check1} | wc -l "
+echo  "could not find ${file_to_check1} in ${BWA}";
 fi
 currdate=$(date '+%Y%m%d%H%m')
 
@@ -89,7 +92,7 @@ export FORWARDER="${NAME}-forward";
 export REQUESTER_PROJECT=$(gcloud config get-value project)
 
 ##SAVE PARAMETERS
-mkdir -p params
+mkdir -p parameters
 paramsfile="parameters/params"
 if [ -e $paramsfile ]; then
 	dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
@@ -118,11 +121,13 @@ echo "export FORWARDER=\"${FORWARDER}\"" >> $paramsfile
 #CHECK EVERYTHING SET UP ON CLOUD:
 checkbwa=$(gsutil ls $BWA | grep $file_to_check | wc -l )
 checkbwa1=$(gsutil ls $BWA | grep $file_to_check1 | wc -l )
-if [ "$checkbwa" -neq 1 ] ; then
-echo  "could not find ${file_to_check} in ${loc_to_check}";
+if [ "$checkbwa" -ne 1 ] ; then
+echo  "could not find ${file_to_check} in ${BWA}";
+exit 1;
 fi
-if [ "$checkbwa1" -neq 1 ] ; then
-echo  "could not find ${file_to_check1} in ${loc_to_check}";
+if [ "$checkbwa1" -ne 1 ] ; then
+	echo  "could not find ${file_to_check1} in ${BWA}";
+exit 1;
 fi
 
 
@@ -165,26 +170,31 @@ if [ ! -e "./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflo
 		echo 'cannot find ./NanostreamDataflowMain/libs/japsa.jar'
 		exit 1
 	fi
-	cd ./nanostream-dataflow/
-	mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar
-	mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar
-	cd NanostreamDataflowMain
-	mvn clean package
-	if [ ! -e './target/NanostreamDataflowMain-1.0-SNAPSHOT.jar' ]; then
-	  echo 'not successfully built'
-	  exit 1;
+	if [ "$CLOUDSHELL" -eq 1 ]; then
+		#JUST BUILD IF ON CLOUD
+		cd ./nanostream-dataflow/
+	
+		mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar
+		mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar
+		cd NanostreamDataflowMain
+		mvn clean package
+		if [ ! -e './target/NanostreamDataflowMain-1.0-SNAPSHOT.jar' ]; then
+		  echo 'not successfully built'
+		  exit 1;
+		fi
+		cd ../..  #back to top level
 	fi
-	cd ../..  #back to top level
 fi
 
 ##PROVISION aligner cluster
 
 provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)" | grep 'loadBalancing' | wc -l )
 if [ "$provisioned" -eq 0 ]; then 
-	#if [ "$CLOUDSHELL" -eq 1 ]; then
+	if [ "$CLOUDSHELL" -eq 1 ]; then
 		source ./gcloud/aligner/provision_internal.sh
 		echo "provisioning aligner cluster"
 		setup
+	fi
 else 
 	echo "already provisioned"
 	#fi
