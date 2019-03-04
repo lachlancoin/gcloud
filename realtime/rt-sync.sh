@@ -2,6 +2,14 @@
 ##THIS SCRIPT MONITORS A LOCAL DIRECTORY FOR NEW FASTQ AND RSYNC
 #bash ./gcloud/rt-sync.sh  path_to_fastq UPLOAD_BUCKET_ON_CLOUD
 
+##GET LATEST CODE
+currdir=$(pwd)
+if [ -e $HOME/github/gcloud ]; then
+  cd $HOME/github/gcloud
+  git pull
+  cd $currdir
+fi
+
 dir=$1  #TARGET DIRECTORY
 PROJECT=$(gcloud config get-value project)
 
