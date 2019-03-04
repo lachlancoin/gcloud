@@ -22,5 +22,9 @@ else
 
 fi
 
-
-
+#ALSO DELETE SUBSCRIPTIONS
+if [ $UPLOAD_SUBSCRIPTIONS ]; then
+gcloud pubsub subscriptions list | grep 'name' | grep ${UPLOAD_SUBSCRIPTION} |  cut -f 2 -d ' '  | xargs -I {} gcloud pubsub subscriptions delete {}
+else
+gcloud pubsub subscriptions list | grep 'name'  |  cut -f 2 -d ' '  | xargs -I {} gcloud pubsub subscriptions delete {}
+fi

@@ -1,7 +1,15 @@
 #!/bin/bash
 PROJECT=$(gcloud config get-value project)
 
+CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
+echo "CLOUDSHELL "$cloudshell
+
 cd $HOME
+if [ -e "./github" ]; then 
+cd github
+done
+echo $pwd
+
 
 if [ ! $ALIGNER_REGION ]; then
 	echo "please define global parameter ALIGNER_REGION using e.g. export ALIGNER_REGION=\"asia-northeast1\""
