@@ -3,12 +3,16 @@
 #bash ./gcloud/rt-sync.sh  path_to_fastq UPLOAD_BUCKET_ON_CLOUD
 
 dir=$1  #TARGET DIRECTORY
-UPLOAD_BUCKET=$2; 
 PROJECT=$(gcloud config get-value project)
-UPLOAD_EVENTS=UPLOAD_EVENTS
+
 sleepbase=60  #HOW LONG TO SLEEP BETWEEN CHECKING
 
-bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
+#GETS THE CURRENT RUNNING PARAMETERS
+gsutil rsync  gs://$PROJECT/parameters parameters
+source parameters/params
+
+
+bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}")
 if [ ! $bucket ]; then 
 	echo "could not find ${PROJECT}/${UPLOAD_BUCKET}";
 	exit 1;
