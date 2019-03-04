@@ -7,27 +7,14 @@ if [ -e "./github" ]; then cd github ; fi
 
 
 
-
-
-
-
-#Manual steps:
-#1. Set up firestore as part of gcloud account setup
-#2. Create storage bucket  $UPLOAD_BUCKET
-#3. Set up UPLOAD_EVENTS topic at https://console.cloud.google.com/cloudpubsub/topicList?project=nano-stream1
-#4 . Log into cloud shell from https://console.cloud.google.com
-#5. On cloud shell run  git clone https://github.com/lachlancoin/gcloud.git
-#6. On cloud she run  bash ./gcloud/start.sh bwa_species
-#7. From local computer Run:  bash ./gcloud/realtime/rt-sync.sh  local_path_to_fastq $UPLOAD_BUCKET
-#8. When finished run bash ./gcloud/shutdown.sh
 DATABASES="${PROJECT}/Databases"
-SPECIES_DB="CombinedDatabases"
+SPECIES_DB="ToxoHumanBacteriaVirus"
 RESISTANCE_DB="resFinder"
 OPTION=$1  
 
 echo $ALIGNER_REGION
 if [ ! $OPTION ]; then
- echo "usage bash start.sh bwa-species mm2-species bwa-resistance mm2-resistance"
+ echo "usage bash start.sh|bwa-species|mm2-species|bwa-resistance|mm2-resistance"
  exit 1
 fi 
 
@@ -101,7 +88,14 @@ export DOCKER_IMAGE=$DOCKER
 export FORWARDER="${NAME}-forward";
 export REQUESTER_PROJECT=$(gcloud config get-value project)
 
-paramsfile="params.sh"
+##SAVE PARAMETERS
+mkdir -p params
+paramsfile="parameters/params"
+if [ -e $paramsfile ]; then
+	dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
+	mv $paramsfile "parameters/params_${dinfo}"
+fi
+
 echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
 echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
 echo "export UPLOAD_BUCKET=\"${ALIGNER_REGION}\"" >> $paramsfile
