@@ -46,7 +46,7 @@ KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
 
 if [ ! $RESISTANCE_GENES_LIST ]; then
-	echo "please define global parameter RESISTANT_GENES_LIST using e.g. export RESISTANT_GENES_LIST=20192802_seq_expt1"
+	echo "please define global parameter RESISTANT_GENES_LIST using e.g. export RESISTANCE_GENES_LIST=20192802_seq_expt1"
 	exit 1;
 fi
 # Collections name prefix of the Firestore database that will be used for writing results
