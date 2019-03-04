@@ -9,7 +9,7 @@ if [ -e "./github" ]; then cd github ; fi
 
  
 DATABASES="${PROJECT}/Databases"
-SPECIES_DB="ToxoHumanBacteriaVirus"
+SPECIES_DB="CombinedDatabases"
 RESISTANCE_DB="resFinder"
 
 RESNAME="ICU";
