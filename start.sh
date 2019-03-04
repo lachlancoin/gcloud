@@ -5,8 +5,6 @@ PROJECT=$(gcloud config get-value project)
 export RESULTS_PREFIX=$(date '+%Y%m%d%H%m')
 export UPLOAD_BUCKET="Uploads"; 
 export UPLOAD_EVENTS="UPLOAD_EVENTS"
-
-#export NAME="bwa-resistance-genes"
 export REGION=$ALIGNER_REGION
 export ZONE="${REGION}-c"
 export MACHINE_TYPE="n1-highmem-4"
@@ -35,11 +33,11 @@ cd $HOME
 #7. From local computer Run:  bash ./gcloud/realtime/rt-sync.sh  local_path_to_fastq $UPLOAD_BUCKET
 #8. When finished run bash ./gcloud/shutdown.sh
 DATABASES="${PROJECT}/Databases"
-SPECIES_DB="CombinedDatabases"
+SPECIES_DB="ToxoHumanBacteriaVirus"
 RESISTANCE_DB="resFinder"
 OPTION=$1  
 if [ ! $OPTION ]; then
- echo "usage bash start.sh bwa-species"
+ echo "usage bash start.sh bwa-species|bwa-species-mm2|bwa-resistance-genes|bwa-resistance-genes-mm2"
 fi 
 
 case $OPTION in
@@ -49,6 +47,9 @@ case $OPTION in
 		NME="bwa-species"
 		MT="n1-highmem-8"
 		DOCKER='allenday/bwa-http-docker:http'
+		file_to_check='genomeDB.fasta.bwt' ;
+		loc_to_check='gs://${PROJECT}/${DATABASES}/${SPECIES_DB}/';
+		
             ;;
         'mm2-species') 
 	 	SUBSCRIPTION="dataflow_species_mm2"
@@ -56,6 +57,8 @@ case $OPTION in
 		NME="bwa-species-mm2"
 		MT="n1-highmem-8"
 		DOCKER='dockersubtest/nano-gcp-http'
+		file_to_check='genomeDB.fasta.mmi' ;
+		loc_to_check='gs://${PROJECT}/${DATABASES}/${SPECIES_DB}/';
             ;;
         'bwa-resistance')  
 	   	SUBSCRIPTION="dataflow_resistance"
@@ -63,6 +66,9 @@ case $OPTION in
 		NME="bwa-resistance-genes"
 		MT="n1-highmem-4"
 		DOCKER='allenday/bwa-http-docker:http'
+		file_to_check='DB.fasta.bwt' ;
+		loc_to_check='gs://${PROJECT}/${DATABASES}/${RESISTANCE_DB}/';
+		checkbwa=$(gsutil ls gs://${PROJECT}/${DATABASES}/${RESISTANCE_DB}/ | grep 'DB.fasta.bwt' | wc -l )
             ;;
         'mm2-resistance')  
 	        SUBSCRIPTION="dataflow_resistance_mm2 "
@@ -70,6 +76,8 @@ case $OPTION in
 		NME="bwa-resistance-genes-mm2"
 		MT="n1-highmem-4"
 		DOCKER='dockersubtest/nano-gcp-http'
+		file_to_check='DB.fasta.mmi' ;
+		loc_to_check='gs://${PROJECT}/${DATABASES}/${RESISTANCE_DB}/';
             ;;
 	 \?) #unrecognized option 
           	 echo "not recognised"
@@ -89,6 +97,12 @@ if [ ! $NAME ] ;
 	exit 1
 fi
 #CHECK EVERYTHING SET UP ON CLOUD:
+checkbwa=$(gsutil ls $loc_to_check | grep $file_to_check | wc -l )
+if [ "$checkbwa" -neq 1 ] ; then
+echo  "could not find ${file_to_check} in ${loc_to_check}";
+fi
+
+
 bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
 if [ ! $bucket ]; then 
 	echo "could not find ${PROJECT}/${UPLOAD_BUCKET}";
