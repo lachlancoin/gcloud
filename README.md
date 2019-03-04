@@ -8,9 +8,9 @@ Steps
 
 1. Set up firestore as part of gcloud account setup
 
-2. Create storage bucket  $UPLOAD_BUCKET
+2. Create storage bucket  called "Uploads"
 
-3. Set up UPLOAD_EVENTS topic at https://console.cloud.google.com/cloudpubsub/topicList?project=nano-stream1
+3. Set up UPLOAD_EVENTS topic at https://console.cloud.google.com/cloudpubsub/topicList
 
 4. Log into cloud shell from https://console.cloud.google.com
 
@@ -18,8 +18,9 @@ Steps
 
 6. On cloud she run  bash ./gcloud/init.sh bwa_species
 
-7. From local computer Run:  bash ./gcloud/realtime/rt-sync.sh  local_path_to_fastq $UPLOAD_BUCKET
+7. From local computer Run:  bash ./gcloud/realtime/rt-sync.sh  local_path_to_fastq Uploads
 
-8. When finished run bash ./gcloud/shutdown.sh
+8. When finished run bash ./gcloud/shutdown.sh (from cloud shell)
+
 
 
