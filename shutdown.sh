@@ -13,10 +13,13 @@ fi
 
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
+
+paramsfile="parameters/params" 
+
 if [ $1 ]; then
 	source $1
 else
-	source parameters/params
+	source $paramsfile
 fi
 
 if [ ! $ALIGNER_REGION ]; then
@@ -45,3 +48,7 @@ gcloud pubsub subscriptions list | grep 'name' | grep ${UPLOAD_SUBSCRIPTION} |  
 
 ## DELETES ALL NOTIFICATIONS - but no reason to do this, other pipelines could be using it
 #source ../pubsub/delete_all_notifications.sh
+
+
+dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
+mv $paramsfile "parameters/params_${dinfo}"
