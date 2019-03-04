@@ -187,8 +187,8 @@ if [ ! -e "./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflo
 fi
 
 ##PROVISION aligner cluster
-	echo "gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format=\"value(IPAddress)\" | grep 'loadBalancing' | wc -l"
-provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)" | grep 'loadBalancing' | wc -l )
+	echo "gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format=\"value(IPAddress)\"  | wc -l"
+provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)"  | wc -l )
 if [ "$provisioned" -eq 0 ]; then 
 	if [ "$CLOUDSHELL" -eq 1 ]; then
 		source ./gcloud/aligner/provision_internal.sh
@@ -206,8 +206,8 @@ fi
 
 SLEEP=60
 while [ "$provisioned" -eq 0 ]; do
-	echo "gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format=\"value(IPAddress)\" | grep 'loadBalancing' | wc -l"
-	provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)" | grep 'loadBalancing' | wc -l)
+	echo "gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format=\"value(IPAddress)\"  | wc -l"
+	provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)" | wc -l)
 	echo "sleeping ${SLEEP} while waiting for alignment cluster";
 	sleep $SLEEP
 done
