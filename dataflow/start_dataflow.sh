@@ -6,7 +6,7 @@ RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
 # specify mode of data processing (species, resistance_genes)
 PROCESSING_MODE=species
 # PubSub subscription defined above
-if [ ! $UPLOAD_SUBSCRIPTON ]; then
+if [ ! $UPLOAD_SUBSCRIPTION ]; then
 	echo "please define UPLOAD_SUBSCRIPTION e.g. export ALIGNER_REGION=\"asia-northeast1\""
 	exit 1;
 fi

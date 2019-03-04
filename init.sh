@@ -111,7 +111,7 @@ else
 	else
 		echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
 		echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
-		echo "export UPLOAD_BUCKET=\"${ALIGNER_REGION}\"" >> $paramsfile
+		echo "export UPLOAD_BUCKET=\"${UPLOAD_BUCKET}\"" >> $paramsfile
 		echo "export UPLOAD_EVENTS=\"${UPLOAD_EVENTS}\"" >> $paramsfile
 		echo "export REGION=\"${REGION}\"" >> $paramsfile
 		echo "export ZONE=\"${ZONE}\"" >> $paramsfile
