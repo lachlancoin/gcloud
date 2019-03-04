@@ -217,14 +217,30 @@ done
 
 
 if [ "$CLOUDSHELL" -eq 1 ]; then
-echo "starting dataflow"
-source ./gcloud/dataflow/start_dataflow.sh 
+	
+	NEWJOBID=$(gcloud dataflow jobs list | grep 'Running' | head -n 1 | cut -f 1 -d  ' ')
+	if [ $NEWJOBID ]; then
+		echo "warning there is already a dataflow job running ${NEWJOBID}";
+	fi
+	if [ $JOBID ] && [ $NEWJOBID ] && [ $NEWJOBID == $JOBID ];  then
+		echo "dataflow job is running already";
+	else
+		echo "starting dataflow"
+		source ./gcloud/dataflow/start_dataflow.sh 
+		JOBID=$(gcloud dataflow jobs list | head -n 2 | grep -v 'JOB_ID' | cut -f 1 -d  ' ')
+		echo "export JOBID=\"${JOBID}\"" >> $paramsfile
+	fi	
+
+
 fi
+
+
+
 
 ##NEXT STEPS , SYNCHRONISE LOCAL DATA DIR WITH CLOUD BUCKET
 #
 echo "gs://${PROJECT}/Uploads directory";
-
+echo "JOBID: ${JOBID}"
 echo "Next run bash ./gcloud/realtime/rt-sync.sh  local_path_to_fastq ${UPLOAD_BUCKET}"
 echo "The results can be visualised at: ${URL}"
 echo "Once finished make sure you shutdown aligner cluster (on cloud shell) with  bash ./gcloud/shutdown.sh"
