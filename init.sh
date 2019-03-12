@@ -5,10 +5,12 @@ CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
 mkdir -p parameters
-
+currdate=$(date '+%Y%m%d%H%m')
 
 OPTION=$1 
 export RESNAME=$2
+
+
 if [ ! $1 ] || [ ! $2 ]; then
 	 echo "usage bash start.sh|bwa-species|mm2-species|bwa-resistance|mm2-resistance  res_prefix"
 	 exit 1
@@ -95,7 +97,7 @@ else
 		echo  "could not find ${file_to_check1} in ${BWA}";
 	exit 1;
 	fi
-	currdate=$(date '+%Y%m%d%H%m')
+
 
 	
 	
@@ -111,6 +113,7 @@ else
 
 	##SAVE PARAMETERS
 		echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
+		echo "export RESNAME=\"${RESNAME}\"" >> $paramsfile
 		echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
 		echo "export UPLOAD_BUCKET=\"${UPLOAD_BUCKET}\"" >> $paramsfile
 		echo "export UPLOAD_EVENTS=\"${UPLOAD_EVENTS}\"" >> $paramsfile
@@ -261,7 +264,10 @@ if [ "$CLOUDSHELL" -eq 1 ]; then
 		echo "starting dataflow"
 		source ./gcloud/dataflow/start_dataflow.sh 
 		JOBID=$(gcloud dataflow jobs list | grep 'Running' | cut -f 1 -d  ' ')
+		TARGETDIR="gs://${PROJECT}/${UPLOAD_BUCKET}/${RESULTS_PREFIX}"
 		echo "export JOBID=\"${JOBID}\"" >> $paramsfile
+		echo "export URL=\"${URL}\"" >> $paramsfile
+		echo "export TARGETDIR=\"${TARGETDIR}\"" >> $paramsfile
 	fi	
 fi
 
@@ -275,7 +281,9 @@ gsutil cp $paramsfile gs://$PROJECT/${paramsfile}
 #
 echo "gs://${PROJECT}/Uploads directory";
 echo "JOBID: ${JOBID}"
-echo "Next run bash ./gcloud/realtime/rt-sync.sh  local_path_to_fastq ${UPLOAD_BUCKET}"
+echo "Copy files to: {$TARGETDIR}"
+echo "Next run bash ./gcloud/realtime/rt-sync.sh  local_path_to_fastq ${TARGETDIR}"
+echo "You can continue to put fastq files in this location "
 echo "The results can be visualised at: ${URL}"
 echo "Once finished make sure you shutdown aligner cluster (on cloud shell) with  bash ./gcloud/shutdown.sh"
 
