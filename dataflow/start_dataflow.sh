@@ -112,11 +112,11 @@ java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowM
  --bwaEndpoint=$BWA_ENDPOINT \
  --bwaDatabase=$BWA_DATABASE \
  --kAlignEndpoint=$KALIGN_ENDPOINT \
- --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
- --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
  --resistanceGenesList=$RESISTANCE_GENES_LIST \
  --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE 
 #\
+# --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
+# --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
 # --bwaArguments=$BWA_ARGUMENTS
 
 
