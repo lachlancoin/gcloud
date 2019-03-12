@@ -5,7 +5,7 @@ CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
 mkdir -p parameters
-gsutil rsync  gs://$PROJECT/parameters parameters
+gsutil rsync -d  gs://$PROJECT/parameters parameters
 
 OPTION=$1 
 export RESNAME=$2
@@ -233,7 +233,7 @@ if [ "$CLOUDSHELL" -eq 1 ]; then
 	fi	
 fi
 
-gsutil rsync parameters gs://$PROJECT/parameters
+gsutil rsync -d parameters gs://$PROJECT/parameters
 
 
 

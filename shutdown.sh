@@ -6,8 +6,6 @@ PROJECT=$(gcloud config get-value project)
 CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
 echo "CLOUDSHELL "$cloudshell
 
-mkdir -p parameters
-gsutil rsync parameters gs://$PROJECT/parameters
 
 
 OPTION=$1 
@@ -22,6 +20,10 @@ fi
 
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
+mkdir -p parameters
+gsutil rsync -d parameters gs://$PROJECT/parameters
+
+
 
 if [ ! -e $paramsfile ] ; then
 	echo  "${paramsfile} does not exist"
@@ -61,5 +63,5 @@ gcloud pubsub subscriptions list | grep 'name' | grep ${UPLOAD_SUBSCRIPTION} |  
 
 dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
 mv $paramsfile $paramsfile.${dinfo}"
-gsutil rsync parameters gs://$PROJECT/parameters
+gsutil rsync -d parameters gs://$PROJECT/parameters
 
