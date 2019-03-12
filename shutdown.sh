@@ -6,21 +6,30 @@ PROJECT=$(gcloud config get-value project)
 CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
 echo "CLOUDSHELL "$cloudshell
 
-if [ "$CLOUDSHELL" -ne 1 ]; then
-	mkdir -p parameters
-	gsutil cp  gs://$PROJECT/parameters/params parameters/params
-fi
+mkdir -p parameters
+gsutil rsync parameters gs://$PROJECT/parameters
+
+
+OPTION=$1 
+export RESNAME=$2
+if [ ! $1 ] || [ ! $2 ]; then
+	 echo "usage bash shutdown.sh|bwa-species|mm2-species|bwa-resistance|mm2-resistance  res_prefix"
+	 exit 1
+else
+	paramsfile="parameters/params-${OPTION}-${RESNAME}"
+fi 
+
 
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
 
-paramsfile="parameters/params" 
-
-if [ $1 ]; then
-	source $1
-else
-	source $paramsfile
+if [ ! -e $paramsfile ] ; then
+	echo  "${paramsfile} does not exist"
+	exit 1;
 fi
+
+source $paramsfile
+
 
 if [ ! $ALIGNER_REGION ]; then
 	echo "please define global parameter ALIGNER_REGION using e.g. export ALIGNER_REGION=\"asia-northeast1\""
@@ -51,4 +60,6 @@ gcloud pubsub subscriptions list | grep 'name' | grep ${UPLOAD_SUBSCRIPTION} |  
 
 
 dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
-mv $paramsfile "parameters/params_${dinfo}"
+mv $paramsfile $paramsfile.${dinfo}"
+gsutil rsync parameters gs://$PROJECT/parameters
+

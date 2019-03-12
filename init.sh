@@ -4,32 +4,43 @@ PROJECT=$(gcloud config get-value project)
 CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
-
-
-
- 
-DATABASES="${PROJECT}/Databases"
-SPECIES_DB="CombinedDatabases"
-RESISTANCE_DB="resFinder"
-
-RESNAME="ICU";
-
 mkdir -p parameters
-paramsfile="parameters/params"
+gsutil rsync  gs://$PROJECT/parameters parameters
+
+OPTION=$1 
+export RESNAME=$2
+if [ ! $1 ] || [ ! $2 ]; then
+	 echo "usage bash start.sh|bwa-species|mm2-species|bwa-resistance|mm2-resistance  res_prefix"
+	 exit 1
+else
+	paramsfile="parameters/params-${OPTION}-${RESNAME}"
+fi 
+
+
+
+##NOTE THESE PARAMETERS OVERWRITTERN IF paramsfile exists
+
+export DATABASES="${PROJECT}/Databases"
+export SPECIES_DB="CombinedDatabases"
+export RESISTANCE_DB="resFinder"
+export RESISTANCE_GENES_LIST=gs://$DATABASES/$RESISTANCE_DB/geneList
+export ALIGNER_REGION="asia-northeast1"
+export UPLOAD_BUCKET="Uploads"; 
+export UPLOAD_EVENTS="UPLOAD_EVENTS"
+export REGION=$ALIGNER_REGION
+export ZONE="${REGION}-c"
+export RESULTS_PREFIX="${RESNAME}_${currdate}"
+export MIN_REPLICAS=1
+export MAX_REPLICAS=3
+export TARGET_CPU_UTILIZATION=0.5
+export UPLOAD_SUBSCRIPTION="projects/nano-stream1/subscriptions/${SUBSCRIPTION}"
+
+
+
+
 if [ -e $paramsfile ]; then
 	source $paramsfile
-	if [ $OPTION ]; then
-	 echo "there is an existing parameter file, so no need to specify an option.  Either move ${paramsfile} or run bash start.sh"
-	 exit 1
-	fi 
-
 else
-	OPTION=$1 
-	if [ ! $OPTION ]; then
-	 echo "usage bash start.sh|bwa-species|mm2-species|bwa-resistance|mm2-resistance"
-	 exit 1
-	fi 
-
 	case $OPTION in
 		'bwa-species') 
 		 	SUBSCRIPTION="dataflow_species"
@@ -86,31 +97,16 @@ else
 	fi
 	currdate=$(date '+%Y%m%d%H%m')
 
-	export ALIGNER_REGION="asia-northeast1"
-	export RESULTS_PREFIX="${RESNAME}_${currdate}"
-	export UPLOAD_BUCKET="Uploads"; 
-	export UPLOAD_EVENTS="UPLOAD_EVENTS"
-	export REGION=$ALIGNER_REGION
-	export ZONE="${REGION}-c"
-	export MACHINE_TYPE="n1-highmem-4"
-	export MIN_REPLICAS=1
-	export MAX_REPLICAS=3
-	export TARGET_CPU_UTILIZATION=0.5
-	export UPLOAD_SUBSCRIPTION="projects/nano-stream1/subscriptions/${SUBSCRIPTION}"
+	
+	
 	export BWA_FILES="${BWA}/*"
 	export MACHINE_TYPE=$MT
 	export NAME=$NME
 	export DOCKER_IMAGE=$DOCKER
 	export FORWARDER="${NAME}-forward";
 	export REQUESTER_PROJECT=$(gcloud config get-value project)
-	export RESISTANCE_GENES_LIST=gs://$DATABASES/$RESISTANCE_DB/geneList
+	
 	##SAVE PARAMETERS
-
-	if [ -e $paramsfile ]; then
-		source $paramsfile
-		#dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
-		#mv $paramsfile "parameters/params_${dinfo}"
-	else
 		echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
 		echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
 		echo "export UPLOAD_BUCKET=\"${UPLOAD_BUCKET}\"" >> $paramsfile
@@ -131,12 +127,9 @@ else
 		echo "export SPECIES_DB=\"${SPECIES_DB}\"" >> $paramsfile
 		echo "export RESISTANCE_DB=\"${RESISTANCE_DB}\"" >> $paramsfile
 		echo "export RESISTANCE_GENES_LIST=\"${RESISTANCE_GENES_LIST}\"" >> $paramsfile
-		gsutil rsync parameters gs://$PROJECT/parameters
-	fi
+		gsutil cp parameters/params gs://$PROJECT/parameters/params
+	
 fi
-
-
-
 
 bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
 if [ ! $bucket ]; then 
@@ -165,6 +158,7 @@ else
 	cd ./nanostream-dataflow/
 	uptodate=$(git pull | grep 'up-to-date' | wc -l) ## get latest version
 	if [ "$uptodate" -eq 0 ] && [ -e "./NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar" ]; then
+		echo  "rm ./NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar"
 		rm ./NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar
 	fi
 	cd ..
@@ -201,6 +195,8 @@ if [ "$provisioned" -eq 0 ]; then
 		source ./gcloud/aligner/provision_internal.sh
 		echo "provisioning aligner cluster"
 		setup
+	else
+		echo "need to log into cloud shell and rerun this to provision the cluster"
 	fi
 else 
 	echo "already provisioned"
@@ -211,17 +207,18 @@ fi
 
 
 
-SLEEP=60
-while [ "$provisioned" -eq 0 ]; do
-	echo "gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format=\"value(IPAddress)\"  | wc -l"
-	provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)" | wc -l)
-	echo "sleeping ${SLEEP} while waiting for alignment cluster";
-	sleep $SLEEP
-done
+
 
 
 if [ "$CLOUDSHELL" -eq 1 ]; then
-	
+	SLEEP=60
+	while [ "$provisioned" -eq 0 ]; do
+		echo "gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format=\"value(IPAddress)\"  | wc -l"
+		provisioned=$(gcloud compute forwarding-rules describe ${FORWARDER} --region=${ALIGNER_REGION} --format="value(IPAddress)" | wc -l)
+		echo "sleeping ${SLEEP} while waiting for alignment cluster";
+		sleep $SLEEP
+	done	
+
 	NEWJOBID=$(gcloud dataflow jobs list | grep 'Running' | head -n 1 | cut -f 1 -d  ' ')
 	if [ $NEWJOBID ]; then
 		echo "warning there is already a dataflow job running ${NEWJOBID}";
@@ -234,10 +231,9 @@ if [ "$CLOUDSHELL" -eq 1 ]; then
 		JOBID=$(gcloud dataflow jobs list | grep 'Running' | cut -f 1 -d  ' ')
 		echo "export JOBID=\"${JOBID}\"" >> $paramsfile
 	fi	
-
-
 fi
-gsutil cp parameters/params gs://$PROJECT/parameters/params
+
+gsutil rsync parameters gs://$PROJECT/parameters
 
 
 
