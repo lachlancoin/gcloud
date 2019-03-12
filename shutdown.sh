@@ -62,6 +62,6 @@ gcloud pubsub subscriptions list | grep 'name' | grep ${UPLOAD_SUBSCRIPTION} |  
 
 
 dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
-mv $paramsfile $paramsfile.${dinfo}"
+mv $paramsfile $paramsfile.${dinfo}
 gsutil rsync -d parameters gs://$PROJECT/parameters
 

@@ -5,7 +5,7 @@ CLOUDSHELL=$(hostname | grep '^cs' | wc -l )
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
 mkdir -p parameters
-gsutil rsync -d  gs://$PROJECT/parameters parameters
+
 
 OPTION=$1 
 export RESNAME=$2
@@ -16,7 +16,7 @@ else
 	paramsfile="parameters/params-${OPTION}-${RESNAME}"
 fi 
 
-
+gsutil rsync -d  gs://$PROJECT/parameters parameters
 
 ##NOTE THESE PARAMETERS OVERWRITTERN IF paramsfile exists
 
@@ -33,7 +33,7 @@ export RESULTS_PREFIX="${RESNAME}_${currdate}"
 export MIN_REPLICAS=1
 export MAX_REPLICAS=3
 export TARGET_CPU_UTILIZATION=0.5
-export UPLOAD_SUBSCRIPTION="projects/nano-stream1/subscriptions/${SUBSCRIPTION}"
+
 
 
 
@@ -105,7 +105,10 @@ else
 	export DOCKER_IMAGE=$DOCKER
 	export FORWARDER="${NAME}-forward";
 	export REQUESTER_PROJECT=$(gcloud config get-value project)
-	
+	export UPLOAD_SUBSCRIPTION="projects/nano-stream1/subscriptions/${SUBSCRIPTION}"
+
+
+
 	##SAVE PARAMETERS
 		echo "export ALIGNER_REGION=\"${ALIGNER_REGION}\"" > $paramsfile
 		echo "export RESULTS_PREFIX=\"${RESULTS_PREFIX}\"" >> $paramsfile
@@ -115,7 +118,7 @@ else
 		echo "export ZONE=\"${ZONE}\"" >> $paramsfile
 		echo "export MACHINE_TYPE=\"${MACHINE_TYPE}\"" >> $paramsfile
 		echo "export MIN_REPLICAS=\"${MIN_REPLICAS}\"" >> $paramsfile
-		echo "export MAX_REPLICAS=\"${MAX_REPLIACES}\"" >> $paramsfile
+		echo "export MAX_REPLICAS=\"${MAX_REPLICAS}\"" >> $paramsfile
 		echo "export TARGET_CPU_UTILIZATION=\"${TARGET_CPU_UTILIZATION}\"" >> $paramsfile
 		echo "export UPLOAD_SUBSCRIPTION=\"${UPLOAD_SUBSCRIPTION}\"" >> $paramsfile
 		echo "export BWA_FILES=\"${BWA_FILES}\"" >> $paramsfile
@@ -147,8 +150,37 @@ else
 fi
 
 
-##SET UP NOTIFICATIONS AND SUBSCRIPTIONS
-source ./gcloud/pubsub/make_notifications.sh 
+
+##CHECK notifications
+notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+
+##CREATE NOTIFICATION FOR FILE UPLOADS
+if [ "$notif" -ge 1 ] ; then
+	echo "Notification already set up ${notif}"
+else
+	echo "gsutil notification create -t ${UPLOAD_EVENTS} -f json  -e OBJECT_FINALIZE -p ${UPLOAD_BUCKET} gs://${PROJECT}"
+	gsutil notification create -t $UPLOAD_EVENTS -f json  -e OBJECT_FINALIZE -p $UPLOAD_BUCKET "gs://"$PROJECT
+	notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+	if [ "$notif" -lt 1 ] ; then
+		echo "failed to set up notifications";
+		exit 1
+	fi
+fi
+
+##CREATE SUBSCRIPTION
+subs=$(gcloud pubsub subscriptions list | grep $UPLOAD_SUBSCRIPTION | grep $PROJECT | wc -l )
+if [ "$subs" -ge 1 ]; then
+	echo $subs
+else 
+	echo "gcloud pubsub subscriptions create ${UPLOAD_SUBSCRIPTION} --topic ${UPLOAD_EVENTS}"
+	gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
+	subs=$(gcloud pubsub subscriptions list | grep $UPLOAD_SUBSCRIPTION | grep $PROJECT | wc -l )
+	if [ "$subs" -lt 1 ]; then
+		echo "failed to set up subsciptions";
+		exit 1
+	fi
+fi
+
 
 
 ##check out the source for nanostream-dataflow
@@ -233,7 +265,9 @@ if [ "$CLOUDSHELL" -eq 1 ]; then
 	fi	
 fi
 
-gsutil rsync -d parameters gs://$PROJECT/parameters
+
+##dont use -d option when copying to gs
+gsutil cp $paramsfile gs://$PROJECT/${paramsfile}
 
 
 
