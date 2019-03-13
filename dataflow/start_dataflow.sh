@@ -62,7 +62,7 @@ FIRESTORE_COLLECTION_NAME_PREFIX=$RESULTS_PREFIX
 # Firestore database document name that will be used for writing statistic results. You can specify it otherwise it will be generated automatically
 FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
 # Max size of batch that will be generated before alignment. Default value - 2000
-ALIGNMENT_BATCH_SIZE=500
+ALIGNMENT_BATCH_SIZE=2000
 # Arguments that will be passed to BWA aligner (worker nodes machine_type). Default value - "-t 4". Can try "-t 8".
 BWA_ARGUMENTS='"-t 4"'
 
@@ -120,5 +120,5 @@ java -cp ./nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowM
 # --bwaArguments=$BWA_ARGUMENTS
 
 
-export URL="https://${PROJECT}.appspot.com/?c=${FIRESTORE_COLLECTION_NAME_PREFIX}_species_sequences_statistic&d=${FIRESTORE_STATISTIC_DOCUMENT_NAME}"
+export URL="https://${PROJECT}.appspot.com/?c=statistic__${PROJECT}&d=*${UPLOAD_BUCKET}*${RESULTS_PREFIX}*"
 echo $URL
