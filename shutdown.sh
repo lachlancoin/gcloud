@@ -21,8 +21,8 @@ fi
 cd $HOME
 if [ -e "./github" ]; then cd github ; fi
 mkdir -p parameters
-gsutil rsync -d parameters gs://$PROJECT/parameters
-
+#gsutil rsync -d parameters gs://$PROJECT/parameters
+gsutil cp  gs://$PROJECT/${paramsfile} ${paramsfile}
 
 
 if [ ! -e $paramsfile ] ; then
@@ -63,5 +63,7 @@ gcloud pubsub subscriptions list | grep 'name' | grep ${UPLOAD_SUBSCRIPTION} |  
 
 dinfo=$(stat --printf='%Y\t%n\n' $paramsfile | cut -f 1)
 mv $paramsfile $paramsfile.${dinfo}
-gsutil rsync -d parameters gs://$PROJECT/parameters
+gsutil cp  ${paramsfile}.${dinfo} gs://$PROJECT/$paramsfile.${dinfo}
+gsutil rm  gs://$PROJECT/${paramsfile} 
+#gsutil rsync -d parameters gs://$PROJECT/parameters
 

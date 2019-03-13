@@ -18,7 +18,8 @@ else
 	paramsfile="parameters/params-${OPTION}-${RESNAME}"
 fi 
 
-gsutil rsync -d  gs://$PROJECT/parameters parameters
+gsutil cp  gs://$PROJECT/${paramsfile} ${paramsfile}
+
 
 ##NOTE THESE PARAMETERS OVERWRITTERN IF paramsfile exists
 
