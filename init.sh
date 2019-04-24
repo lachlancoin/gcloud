@@ -30,8 +30,8 @@ export RESISTANCE_GENES_LIST=gs://$DATABASES/$RESISTANCE_DB/geneList
 export ALIGNER_REGION="asia-northeast1"
 export UPLOAD_BUCKET="Uploads";
 export UPLOAD_EVENTS="UPLOAD_EVENTS"
-export VISUALISER="visualiser_website"
-export MONITOR="monitoring_website"
+export VISUALISER="visualiser-site"
+export MONITOR="monitor-site"
 export REGION=$ALIGNER_REGION
 export ZONE="${REGION}-c"
 export RESULTS_PREFIX="${RESNAME}_${currdate}"
@@ -39,6 +39,7 @@ export MIN_REPLICAS=1
 export MAX_REPLICAS=3
 export TARGET_CPU_UTILIZATION=0.5
 
+export VERIFICATION="coingroupimb"
 
 
 
@@ -200,7 +201,7 @@ else
 	fi
 fi
 
-## TODO WEBSITE STUFF HERE 
+## TODO WEBSITE STUFF HERE
 
 ## Check out the source for nanostream-dataflow
 if [ ! -e "./nanostream-dataflow" ]; then
