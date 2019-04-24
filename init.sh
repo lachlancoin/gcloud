@@ -30,7 +30,7 @@ export RESISTANCE_GENES_LIST=gs://$DATABASES/$RESISTANCE_DB/geneList
 export ALIGNER_REGION="asia-northeast1"
 export UPLOAD_BUCKET="Uploads";
 export UPLOAD_EVENTS="UPLOAD_EVENTS"
-export VISUALISER="visualiser-site"
+export VISUALIZER="visualizer-site"
 export MONITOR="monitor-site"
 export REGION=$ALIGNER_REGION
 export ZONE="${REGION}-c"
@@ -156,16 +156,17 @@ else
 fi
 
 
-## CREATE PUBSUB TOPIC
-pubtopic=$(gcloud pubsub topics list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+## CREATE PUBSUB
+pub=$(gcloud pubsub s list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
 
-if [ "$pubtopic" -ge 1 ] ; then
-	echo "PubSub Topic already set up ${pubtopic}"
+if [ "$pub" -ge 1 ] ; then
+	echo "PubSub  already set up ${pub}"
 else
-	echo "gcloud pubsub subscriptions create mySubscription --topic ${UPLOAD_EVENTS}"
-	pubtopic=$(gcloud pubsub topics list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
-	if [ "$pubtopic" -ge 1 ] ; then
-		echo "failed to set up PubSub Topic";
+	echo "gcloud pubsub subscriptions create mySubscription -- ${UPLOAD_EVENTS}"
+	gcloud pubsub subscriptions create mySubscription -- ${UPLOAD_EVENTS}
+	pub=$(gcloud pubsub s list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+	if [ "$pub" -lt 1 ] ; then
+		echo "failed to set up PubSub ";
 		exit 1
 	fi
 fi
@@ -187,21 +188,123 @@ else
 	fi
 fi
 
-## CREATE SUBSCRIPTION
+## CREATE SUBSCRIPTION FOR ALIGNER CLUSTER
 subs=$(gcloud pubsub subscriptions list | grep $UPLOAD_SUBSCRIPTION | grep $PROJECT | wc -l )
 if [ "$subs" -ge 1 ]; then
 	echo $subs
 else
-	echo "gcloud pubsub subscriptions create ${UPLOAD_SUBSCRIPTION} --topic ${UPLOAD_EVENTS}"
-	gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
+	echo "gcloud pubsub subscriptions create ${UPLOAD_SUBSCRIPTION} -- ${UPLOAD_EVENTS}"
+	gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION -- $UPLOAD_EVENTS
 	subs=$(gcloud pubsub subscriptions list | grep $UPLOAD_SUBSCRIPTION | grep $PROJECT | wc -l )
 	if [ "$subs" -lt 1 ]; then
-		echo "failed to set up subsciptions";
+		echo "failed to set up subsciption";
 		exit 1
 	fi
 fi
 
 ## TODO WEBSITE STUFF HERE
+
+## Checks for pubsub subcription, creates one if it's not there
+chkmonsub=$(gcloud pubsub subscriptions list | grep $MONITOR | wc -l )
+if [ "$chkmonsub" -ge 1 ]; then
+	echo $chkmonsub
+else
+	echo "gcloud beta pubsub subscriptions create ${MONITOR} --${UPLOAD_EVENTS}"
+	gcloud beta pubsub subscriptions create $MONITOR \
+            --topic $UPLOAD_EVENTS \
+            --push-endpoint \
+                https://${MONITOR}-dot-nano-stream1.appspot.com/pubsub/push?token=${VERIFICATION} \
+            --ack-deadline 30
+	chkmonsub=$(gcloud pubsub subscriptions list | grep $MONITOR | wc -l )
+	if [ "$chkmonsub" -lt 1 ]; then
+		echo "failed to set up monitoring subsciption";
+		exit 1
+	fi
+fi
+
+## Checks for pubsub monitoring site, deploys it if it's not there
+chkmonsite=$(gcloud app services list | grep $MONITOR | wc -l )
+if [ "$chkmonsite" -ge 1 ]; then
+	echo "Monitor already set up ${MONITOR}-dot-${PROJECT}.appspot.com"
+else
+	## Localise variables
+	cd ./nanostream-dataflow/pubsub_monitor/
+	sed -i "
+		s|@MONITOR@|${MONITOR}|g;
+		s|@PROJECT@|${PROJECT}|g;
+		s|@UPLOAD_EVENTS@|${UPLOAD_EVENTS}|g;
+		s|@VERIFICATION@|${VERIFICATION}|g" app.yaml
+	## Deploy monitoring
+	echo "gcloud app deploy"
+	gcloud app deploy
+	## Check if deployment successful TODO: Might require a ~5-10 min delay here, not sure if automatic
+	chkmonsite=$(gcloud app instances list | grep ${MONITOR} | wc -l )
+	if [ "$chkmonsite" -lt 1 ] ; then
+		echo "failed to set up monitoring website";
+		exit 1
+	fi
+	cd ~
+fi
+
+## Checks for visualizer subcription, creates one if it's not there
+chkvissub=$(gcloud pubsub subscriptions list | grep $VISUALIZER | wc -l )
+if [ "$chkvissub" -ge 1 ]; then
+	echo $chkvissub
+else
+	echo "gcloud beta pubsub subscriptions create ${VISUALIZER} --${UPLOAD_EVENTS}"
+	gcloud beta pubsub subscriptions create $VISUALIZER \
+            --topic $UPLOAD_EVENTS \
+            --ack-deadline 60 \
+						--expiration-period 1d
+	chkvissub=$(gcloud pubsub subscriptions list | grep $VISUALIZER | wc -l )
+	if [ "$chkvissub" -lt 1 ]; then
+		echo "failed to set up visualizer subsciption";
+		exit 1
+	fi
+fi
+
+## Checks for visualization site, deploys it if it's not there
+chkvissite=$(gcloud app services list | grep default | wc -l )
+if [ "$chkvissite" -ge 1 ]; then
+	echo "Monitor already set up ${PROJECT}.appspot.com"
+else
+	## Localise variables TODO CONTINUE HERE
+	cd ./nanostream-dataflow/visualization/
+	sed -i "
+		s|@MONITOR@|${MONITOR}|g;
+		s|@PROJECT@|${PROJECT}|g;
+		s|@UPLOAD_EVENTS@|${UPLOAD_EVENTS}|g;
+		s|@VERIFICATION@|${VERIFICATION}|g" sunburst.yaml
+	## Deploy monitoring
+	echo "gcloud app deploy"
+	gcloud app deploy
+	## Check if deployment successful TODO: Might require a ~5-10 min delay here, not sure if automatic
+	chkvissite=$(gcloud app services list | grep default | wc -l )
+	if [ "$chkmvissite" -lt 1 ] ; then
+		echo "failed to set up visualization website";
+		exit 1
+	fi
+	cd ..
+fi
+
+##CHECK notifications
+notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+
+##CREATE NOTIFICATION FOR FILE UPLOADS
+if [ "$notif" -ge 1 ] ; then
+	echo "Notification already set up ${notif}"
+else
+	echo "gsutil notification create -t ${UPLOAD_EVENTS} -f json  -e OBJECT_FINALIZE -p ${UPLOAD_BUCKET} gs://${PROJECT}"
+	gsutil notification create -t $UPLOAD_EVENTS -f json  -e OBJECT_FINALIZE -p $UPLOAD_BUCKET "gs://"$PROJECT
+	notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+	if [ "$notif" -lt 1 ] ; then
+		echo "failed to set up notifications";
+		exit 1
+	fi
+fi
+
+sed -i "s/original/new/g" file.txt
+
 
 ## Check out the source for nanostream-dataflow
 if [ ! -e "./nanostream-dataflow" ]; then
