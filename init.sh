@@ -18,7 +18,7 @@ else
 	paramsfile="parameters/params-${OPTION}-${RESNAME}"
 fi
 
-gsutil cp  gs://$PROJECT/${paramsfile} ${paramsfile}
+gsutil cp  gs://{$PROJECT}/${paramsfile} ${paramsfile}
 
 
 ##NOTE THESE PARAMETERS OVERWRITTERN IF paramsfile exists
@@ -142,8 +142,14 @@ fi
 
 bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
 if [ ! $bucket ]; then
-	echo "could not find ${PROJECT}/${UPLOAD_BUCKET}";
-	exit 1;
+	echo "${PROJECT}/${UPLOAD_BUCKET} not found, attempting set up"
+	echo "gsutil cp ignore.txt gs://${PROJECT}/${UPLOAD_BUCKET}"
+	gsutil cp ignore.txt gs://${PROJECT}/${UPLOAD_BUCKET} ##GCS only emulates folders, do not allow 'creation' of folders from gsutil, this is a workaround
+	bucket=$(gsutil ls gs://${PROJECT} | grep "${PROJECT}/${UPLOAD_BUCKET}/")
+	if [ ! $bucket ]; then
+		echo "failed to create uploads bucket";
+		exit 1
+	fi
 fi
 
 ## GET/UPDATE HELPER SCRIPTS
@@ -162,6 +168,7 @@ pub=$(gcloud pubsub s list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
 if [ "$pub" -ge 1 ] ; then
 	echo "PubSub  already set up ${pub}"
 else
+	echo "PubSub topic not found, attempting set up"
 	echo "gcloud pubsub subscriptions create mySubscription -- ${UPLOAD_EVENTS}"
 	gcloud pubsub subscriptions create mySubscription -- ${UPLOAD_EVENTS}
 	pub=$(gcloud pubsub s list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
@@ -173,15 +180,16 @@ fi
 
 
 ## CHECK notifications
-notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+notif=$(notification list gs://$PROJECT | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
 
 ## CREATE NOTIFICATION FOR FILE UPLOADS
 if [ "$notif" -ge 1 ] ; then
 	echo "Notification already set up ${notif}"
 else
-	echo "gsutil notification create -t ${UPLOAD_EVENTS} -f json  -e OBJECT_FINALIZE -p ${UPLOAD_BUCKET} gs://${PROJECT}"
-	gsutil notification create -t $UPLOAD_EVENTS -f json  -e OBJECT_FINALIZE -p $UPLOAD_BUCKET "gs://"$PROJECT
-	notif=$(gsutil notification list gs://nano-stream1 | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+	echo "Notification not found, attempting set up"
+	echo "gsutil notification create -t ${UPLOAD_EVENTS} -f json -e OBJECT_FINALIZE -p ${UPLOAD_BUCKET} gs://${PROJECT}"
+	gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE -p $UPLOAD_BUCKET gs://$PROJECT
+	notif=$(gsutil notification list gs://$PROJECT | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
 	if [ "$notif" -lt 1 ] ; then
 		echo "failed to set up notifications";
 		exit 1
@@ -268,7 +276,7 @@ chkvissite=$(gcloud app services list | grep default | wc -l )
 if [ "$chkvissite" -ge 1 ]; then
 	echo "Monitor already set up ${PROJECT}.appspot.com"
 else
-	## Localise variables TODO CONTINUE HERE
+	## Localise variables TODO CONTINUE HERE FIREBASE stuff
 	cd ./nanostream-dataflow/visualization/
 	sed -i "
 		s|@MONITOR@|${MONITOR}|g;
@@ -306,7 +314,7 @@ fi
 sed -i "s/original/new/g" file.txt
 
 
-## Check out the source for nanostream-dataflow
+## Check out the source for nanostream-dataflow TODO change this to Larry's for localisable variables?
 if [ ! -e "./nanostream-dataflow" ]; then
 	git clone "https://github.com/allenday/nanostream-dataflow.git"
 else
