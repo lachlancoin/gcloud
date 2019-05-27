@@ -18,10 +18,6 @@ Steps
 
 8. When finished, on cloud shell run `bash ./gcloud/shutdown.sh`
 
-Results 
-
- 
-
 Following steps have been automated, I've archived them below in case errors are found in the future and they need to be done through the GUI.
 2.1 Create storage bucket called "Uploads" atomated in init.sh
 2.2 Set up UPLOAD_EVENTS topic at https://console.cloud.google.com/cloudpubsub/topicList
