@@ -18,7 +18,7 @@ else
 	paramsfile="parameters/params-${OPTION}-${RESNAME}"
 fi
 
-gsutil cp  gs://{$PROJECT}/${paramsfile} ${paramsfile}
+gsutil cp  gs://${PROJECT}/${paramsfile} ${paramsfile}
 
 
 ##NOTE THESE PARAMETERS OVERWRITTERN IF paramsfile exists
