@@ -314,9 +314,11 @@ fi
 sed -i "s/original/new/g" file.txt
 
 
-## Check out the source for nanostream-dataflow TODO change this to Larry's for localisable variables?
+## Check out the source for nanostream-dataflow. 
+## Originally downloaded Allen Day's nanostream-dataflow git, but updated to Larry's to automate the website stuff below.
+## If this doesn't work out, can be returned to original by replacing "Firedrops" with "allenday" 2 lines down.
 if [ ! -e "./nanostream-dataflow" ]; then
-	git clone "https://github.com/allenday/nanostream-dataflow.git"
+	git clone "https://github.com/Firedrops/nanostream-dataflow.git"
 else
 	cd ./nanostream-dataflow/
 	uptodate=$(git pull | grep 'up-to-date' | wc -l) ## get latest version
