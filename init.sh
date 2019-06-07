@@ -163,7 +163,7 @@ fi
 
 
 ## CREATE PUBSUB
-pub=$(gcloud pubsub s list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+pub=$(gcloud pubsub subscriptions list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
 
 if [ "$pub" -ge 1 ] ; then
 	echo "PubSub  already set up ${pub}"
@@ -171,7 +171,7 @@ else
 	echo "PubSub topic not found, attempting set up"
 	echo "gcloud pubsub subscriptions create mySubscription -- ${UPLOAD_EVENTS}"
 	gcloud pubsub subscriptions create mySubscription -- ${UPLOAD_EVENTS}
-	pub=$(gcloud pubsub s list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
+	pub=$(gcloud pubsub subscriptions list | grep $UPLOAD_EVENTS | grep $PROJECT | wc -l )
 	if [ "$pub" -lt 1 ] ; then
 		echo "failed to set up PubSub ";
 		exit 1
